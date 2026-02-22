@@ -1,5 +1,6 @@
 /**
- * AI Digest Bot - FAST VERSION (оптимизировано)
+ * AI Digest Bot - FAST + REFERRAL SYSTEM
+ * AI-репетитор + Рефералы (Telegram Stars)
  */
 const CHANNEL_ID = "-1001859702206";
 const ADMIN_IDS = ["1271633868"];
@@ -13,19 +14,19 @@ const QUICK = {
   "inflation_Болгария": "📊 **БОЛГАРИЯ**\n\n💹 Инфляция: 4.8% ➡️",
   "inflation_США": "📊 **США**\n\n💹 Инфляция: 3.2% 📉",
   "weather_Москва": "🌤️ **МОСКВА**\n\n🌡️ +18°C\n☀️ Ясно\n💨 5 м/с",
-  "weather_София": "🌤️ **СОФИЯ**\n\n🌡️ +19°C\n☀️ Ясно\n💨 4 м/с",
-  "weather_Санкт-Петербург": "🌤️ **СПБ**\n\n🌡️ +15°C\n☁️ Облачно\n💨 8 м/с"
+  "weather_София": "🌤️ **СОФИЯ**\n\n🌡️ +19°C\n☀️ Ясно\n💨 4 м/с"
 };
 
-// Школьные предметы
 const SCHOOL = ["Математика","Русский язык","Литература","Физика","Химия","Биология","География","История","Обществознание","Информатика","Английский","Немецкий","ОБЖ"];
-
-// ВУЗ предметы
 const UNI = ["Высшая математика","Физика","Химия","Программирование","Базы данных","Сети","Экономика","Менеджмент","Право","Философия","Психология"];
+
+// Реферальная система
+const REFERRAL_REWARD = 50; // 50 звёзд за покупку
+const TRIAL_DAYS = 3;
 
 export default {
   async fetch(request, env) {
-    if (request.method === "GET") return new Response("Bot OK");
+    if (request.method === "GET") return new Response("Bot OK + Referral");
     
     if (request.method === "POST") {
       const update = await request.json();
@@ -36,11 +37,11 @@ export default {
         const data = cb.data;
         const chatId = cb.message.chat.id;
         const msgId = cb.message.message_id;
+        const userId = cb.from.id.toString();
         
         let reply = "";
         let kb = null;
         
-        // Мгновенные ответы
         if (QUICK[data]) {
           reply = QUICK[data];
           kb = getBackKB();
@@ -54,7 +55,21 @@ export default {
           reply = "🎓 **ВУЗ**\n\nВыберите предмет:";
           kb = getUniKB();
         } else if (data === "tutor_main") {
-          reply = "🎓 **AI-РЕПЕТИТОР**\n\n3 дня бесплатно!\n\nЖмите /tutor";
+          const hasAccess = await checkTutorAccess(env, userId);
+          if (hasAccess) {
+            reply = "🎓 **AI-РЕПЕТИТОР**\n\n✅ У вас активная подписка!\n\nНапиши предмет и задачу — объясню!";
+          } else {
+            reply = "🎓 **AI-РЕПЕТИТОР**\n\n💰 3 дня бесплатно!\n\nПригласи друзей — получи звёзды!";
+          }
+          kb = getTutorKB();
+        } else if (data === "referral_main") {
+          const refData = await getReferralData(env, userId);
+          reply = `👥 **РЕФЕРАЛЬНАЯ СИСТЕМА**\n\n` +
+            `👤 Вас пригласил: ${refData.referrer || "Никто"}\n\n` +
+            `👥 Вы пригласили: ${refData.referrals.length}\n` +
+            `⭐ Заработано: ${refData.earned} звёзд\n\n` +
+            `💰 **Награда:** 50 звёзд за каждую покупку!\n\n` +
+            `🔗 Ваша ссылка:\n\`https://t.me/AidenHelpbot?start=ref_${userId}\``;
           kb = getBackKB();
         } else if (data === "invest_main") {
           reply = "💰 **ИНВЕСТИЦИИ**";
@@ -79,6 +94,17 @@ export default {
           const subj = data.replace("uni_", "");
           reply = `🎓 **{subj}**\n\nНапиши задачу — помогу!`;
           kb = getBackKB();
+        } else if (data === "tutor_buy") {
+          reply = "💰 **КУПИТЬ AI-РЕПЕТИТОРА**\n\n" +
+            "🆓 **Триал** — 3 дня — Бесплатно\n" +
+            "⭐ **Базовый** — 1 месяц — 99 звёзд\n" +
+            "⭐ **PRO** — 3 месяца — 249 звёзд\n\n" +
+            "Нажмите на тариф:";
+          kb = getTutorPayKB();
+        } else if (data === "tutor_pay_trial") {
+          await activateTutor(env, userId, "trial", TRIAL_DAYS);
+          reply = "✅ **Триал активирован!**\n\n3 дня бесплатно.\n\nНапиши предмет — помогу!";
+          kb = getBackKB();
         } else {
           reply = "🔙 Меню";
           kb = getMainKB();
@@ -102,9 +128,24 @@ export default {
           return new Response("OK");
         }
         
+        // Обработка реферальной ссылки (/start ref_XXX)
+        if (text.startsWith("/start ref_")) {
+          const referrerId = text.replace("/start ref_", "");
+          if (referrerId !== uid) {
+            await addReferral(env, uid, referrerId);
+            const reply = `✅ Вы подписаны по реферальной ссылке!\n\n` +
+              `👤 Вас пригласил: ${referrerId}\n\n` +
+              `🎁 Бонус: 3 дня AI-репетитора бесплатно!\n\n` +
+              `/tutor — начать занятия`;
+            await activateTutor(env, uid, "trial", TRIAL_DAYS);
+            await sendMsg(env.BOT_TOKEN, chatId, reply);
+            return new Response("OK");
+          }
+        }
+        
         // Геолокация
         if (msg.location) {
-          const reply = "🌤️ **ПОГОДА**\n\n📍 " + msg.location.latitude.toFixed(2) + ", " + msg.location.longitude.toFixed(2) + "\n\nОтправь город для точного прогноза!";
+          const reply = "🌤️ **ПОГОДА**\n\n📍 " + msg.location.latitude.toFixed(2) + ", " + msg.location.longitude.toFixed(2);
           await sendMsg(env.BOT_TOKEN, chatId, reply);
           return new Response("OK");
         }
@@ -124,25 +165,63 @@ export default {
 📊 Бизнес
 🌤️ Погода
 
-**Жми кнопки!**`;
+**Жми кнопки!**
+
+👥 Пригласи друзей — получи 50 звёзд за каждого!
+/ref — твоя реферальная ссылка`;
           await sendKB(env, chatId, reply, getMainKB());
           return new Response("OK");
         }
         
         if (text === "/help") {
-          reply = "📖 **СПРАВКА**\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/invest [вопрос]\n/weather [город]";
+          reply = "📖 **СПРАВКА**\n\n" +
+            "/school [предмет]\n" +
+            "/university [предмет]\n" +
+            "/tutor — AI-репетитор\n" +
+            "/ref — реферальная ссылка\n" +
+            "/my_tutor — статус подписки\n" +
+            "/invest [вопрос]\n" +
+            "/weather [город]";
           await sendKB(env, chatId, reply, getHelpKB());
           return new Response("OK");
         }
         
-        if (text === "/tutor") {
-          reply = "🎓 **AI-РЕПЕТИТОР**\n\n3 дня бесплатно!\n\nНапиши предмет и задачу — объясню!";
+        if (text === "/ref") {
+          const refData = await getReferralData(env, uid);
+          reply = `👥 **РЕФЕРАЛЬНАЯ СИСТЕМА**\n\n` +
+            `👥 Вы пригласили: ${refData.referrals.length}\n` +
+            `⭐ Заработано: ${refData.earned} звёзд\n\n` +
+            `💰 **50 звёзд** за каждую покупку!\n\n` +
+            `🔗 Ваша ссылка:\n\`https://t.me/AidenHelpbot?start=ref_${uid}\`\n\n` +
+            `_Отправь ссылку друзьям!_`;
           await sendMsg(env.BOT_TOKEN, chatId, reply);
           return new Response("OK");
         }
         
+        if (text === "/tutor") {
+          const hasAccess = await checkTutorAccess(env, uid);
+          if (hasAccess) {
+            reply = "🎓 **AI-РЕПЕТИТОР**\n\n✅ У вас активная подписка!\n\nНапиши предмет и задачу — объясню!";
+          } else {
+            reply = "🎓 **AI-РЕПЕТИТОР**\n\n⚠️ Нет подписки.\n\n💰 3 дня бесплатно!\n\nНажмите /buy_tutor";
+          }
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+        
+        if (text === "/buy_tutor") {
+          reply = "💰 **КУПИТЬ AI-РЕПЕТИТОРА**\n\n" +
+            "🆓 **Триал** — 3 дня — Бесплатно\n" +
+            "⭐ **Базовый** — 1 месяц — 99 звёзд\n" +
+            "⭐ **PRO** — 3 месяца — 249 звёзд\n\n" +
+            "Нажмите кнопку ниже:";
+          await sendKB(env, chatId, reply, getTutorPayKB());
+          return new Response("OK");
+        }
+        
         if (text === "/my_tutor") {
-          reply = "🎓 **СТАТУС**\n\n✅ Триал активен (3 дня)";
+          const status = await getTutorStatus(env, uid);
+          reply = "🎓 **СТАТУС**\n\n" + status;
           await sendMsg(env.BOT_TOKEN, chatId, reply);
           return new Response("OK");
         }
@@ -158,7 +237,7 @@ export default {
           reply = await ai(env, "Реши: " + text.replace("/solve ", ""));
         } else if (text.startsWith("/weather ")) {
           const city = text.replace("/weather ", "");
-          reply = `🌤️ **{city}**\n\nЗагрузка прогноза...`;
+          reply = `🌤️ **{city}**\n\nЗагрузка...`;
         } else if (text.startsWith("/ask ")) {
           reply = await ai(env, text.replace("/ask ", ""));
         } else if (text.startsWith("/")) {
@@ -185,12 +264,101 @@ export default {
   }
 };
 
+// === РЕФЕРАЛЬНАЯ СИСТЕМА ===
+
+async function getReferralData(env, userId) {
+  try {
+    const key = `ref_${userId}`;
+    const data = await env.RAG_STORE.get(key);
+    if (!data) return {referrer: null, referrals: [], earned: 0};
+    return JSON.parse(data);
+  } catch(e) {
+    return {referrer: null, referrals: [], earned: 0};
+  }
+}
+
+async function addReferral(env, userId, referrerId) {
+  try {
+    // Записываем кто пригласил
+    await env.RAG_STORE.put(`ref_${userId}`, JSON.stringify({
+      referrer: referrerId,
+      referrals: [],
+      earned: 0
+    }));
+    
+    // Добавляем к рефереру
+    const refData = await getReferralData(env, referrerId);
+    if (!refData.referrals.includes(userId)) {
+      refData.referrals.push(userId);
+      await env.RAG_STORE.put(`ref_${referrerId}`, JSON.stringify(refData));
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function payReferralReward(env, userId) {
+  try {
+    // Находим кто пригласил
+    const userData = await getReferralData(env, userId);
+    if (userData.referrer) {
+      const referrerData = await getReferralData(env, userData.referrer);
+      referrerData.earned += REFERRAL_REWARD;
+      await env.RAG_STORE.put(`ref_${userData.referrer}`, JSON.stringify(referrerData));
+      
+      // Уведомляем реферера
+      await sendMsg(env.BOT_TOKEN, userData.referrer, 
+        `⭐ **+{REFERRAL_REWARD} звёзд**!\n\n` +
+        `Ваш реферал ${userId} купил подписку!\n\n` +
+        `Всего заработано: ${referrerData.earned} звёзд`);
+    }
+  } catch(e) { console.error(e); }
+}
+
+// === AI-РЕПЕТИТОР ===
+
+async function checkTutorAccess(env, userId) {
+  try {
+    const key = `tutor_${userId}`;
+    const data = await env.RAG_STORE.get(key);
+    if (!data) return false;
+    const sub = JSON.parse(data);
+    return new Date() < new Date(sub.expires);
+  } catch(e) { return false; }
+}
+
+async function getTutorStatus(env, userId) {
+  try {
+    const key = `tutor_${userId}`;
+    const data = await env.RAG_STORE.get(key);
+    if (!data) return "❌ Нет подписки\n\n/buy_tutor — купить";
+    const sub = JSON.parse(data);
+    const expiry = new Date(sub.expires);
+    const days = Math.ceil((expiry - new Date()) / (1000*60*60*24));
+    return `✅ **{sub.plan}**\n\n📅 До: ${expiry.toLocaleDateString('ru-RU')}\n⏳ Осталось: ${days} дн.`;
+  } catch(e) { return "Ошибка"; }
+}
+
+async function activateTutor(env, userId, plan, days) {
+  try {
+    const expires = new Date();
+    expires.setDate(expires.getDate() + days);
+    await env.RAG_STORE.put(`tutor_${userId}`, JSON.stringify({
+      userId, plan, expires: expires.toISOString(), activated: new Date().toISOString()
+    }));
+    
+    // Если не триал — платим рефереру
+    if (plan !== "trial") {
+      await payReferralReward(env, userId);
+    }
+    return true;
+  } catch(e) { return false; }
+}
+
 // === КЛАВИАТУРЫ ===
 
 function getMainKB() {
   return {inline_keyboard: [
     [{text:"🏫 Школа",callback_data:"school_main"},{text:"🎓 ВУЗ",callback_data:"uni_main"}],
-    [{text:"🎓 AI-репетитор",callback_data:"tutor_main"}],
+    [{text:"🎓 AI-репетитор",callback_data:"tutor_main"},{text:"👥 Рефералы",callback_data:"referral_main"}],
     [{text:"💰 Инвестиции",callback_data:"invest_main"},{text:"₿ Крипта",callback_data:"crypto_main"}],
     [{text:"📊 Бизнес",callback_data:"business_main"}],
     [{text:"🌤️ Погода",callback_data:"weather_main"},{text:"📊 Инфляция",callback_data:"inflation_main"}],
@@ -199,8 +367,7 @@ function getMainKB() {
 }
 
 function getSchoolKB() {
-  const kb = [];
-  let row = [];
+  const kb = []; let row = [];
   SCHOOL.forEach((s, i) => {
     row.push({text: s, callback_data: "school_" + s});
     if (row.length === 2 || i === SCHOOL.length - 1) { kb.push(row); row = []; }
@@ -210,8 +377,7 @@ function getSchoolKB() {
 }
 
 function getUniKB() {
-  const kb = [];
-  let row = [];
+  const kb = []; let row = [];
   UNI.forEach((s, i) => {
     row.push({text: s, callback_data: "uni_" + s});
     if (row.length === 2 || i === UNI.length - 1) { kb.push(row); row = []; }
@@ -221,11 +387,11 @@ function getUniKB() {
 }
 
 function getInvestKB() {
-  return {inline_keyboard: [[{text:"Акции",callback_data:"invest_Акции"},{text:"Облигации",callback_data:"invest_Облигации"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
+  return {inline_keyboard: [[{text:"Акции",callback_data:"invest_Акции"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
 }
 
 function getCryptoKB() {
-  return {inline_keyboard: [[{text:"Биткоин",callback_data:"crypto_Биткоин"},{text:"DeFi",callback_data:"crypto_DeFi"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
+  return {inline_keyboard: [[{text:"Биткоин",callback_data:"crypto_Биткоин"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
 }
 
 function getBusinessKB() {
@@ -233,11 +399,24 @@ function getBusinessKB() {
 }
 
 function getWeatherKB() {
-  return {inline_keyboard: [[{text:"🇷🇺 Москва",callback_data:"weather_Москва"},{text:"🇧🇬 София",callback_data:"weather_София"}],[{text:"🇷🇺 СПб",callback_data:"weather_Санкт-Петербург"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
+  return {inline_keyboard: [[{text:"🇷🇺 Москва",callback_data:"weather_Москва"},{text:"🇧🇬 София",callback_data:"weather_София"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
 }
 
 function getInflationKB() {
   return {inline_keyboard: [[{text:"🇷🇺 Россия",callback_data:"inflation_Россия"},{text:"🇺🇸 США",callback_data:"inflation_США"}],[{text:"🇧🇬 Болгария",callback_data:"inflation_Болгария"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
+}
+
+function getTutorKB() {
+  return {inline_keyboard: [[{text:"💰 Купить подписку",callback_data:"tutor_buy"}],[{text:"📖 Справка",callback_data:"help_main"}],[{text:"🔙 Назад",callback_data:"back_main"}]]};
+}
+
+function getTutorPayKB() {
+  return {inline_keyboard: [
+    [{text:"🆓 3 дня — Бесплатно",callback_data:"tutor_pay_trial"}],
+    [{text:"⭐ 1 мес — 99 звёзд",callback_data:"tutor_pay_basic"}],
+    [{text:"⭐ 3 мес — 249 звёзд",callback_data:"tutor_pay_pro"}],
+    [{text:"🔙 Назад",callback_data:"back_main"}]
+  ]};
 }
 
 function getBackKB() {
