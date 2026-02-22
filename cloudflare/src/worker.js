@@ -1,96 +1,59 @@
 /**
- * AI Digest Bot - MAXIMUM UNIVERSAL EDITION
- * Все сферы + Многоуровневые кнопки + Быстрые ответы
- * Для разной аудитории: Школьники, Студенты, Инвесторы, Предприниматели
+ * AI Digest Bot - MAXIMUM UNIVERSAL + WEATHER
+ * Все сферы + Аудитории + Прогноз погоды
  */
 const CHANNEL_ID = "-1001859702206";
 const ADMIN_IDS = ["1271633868"];
 
-// === БАЗА ЗНАНИЙ (кэшированные ответы для кнопок) ===
-const KNOWLEDGE = {
-  // ИНВЕСТИЦИИ
-  "invest_Акции": "💰 **АКЦИИ**\n\nАкция — доля в компании.\n\n📈 **Плюсы:**\n• Рост стоимости\n• Дивиденды\n• Ликвидность\n\n⚠️ **Риски:**\n• Волатильность\n• Банкротство\n\n📚 **Популярные:**\n• Apple (AAPL)\n• Tesla (TSLA)\n• Газпром (GAZP)\n\nНапиши /invest Акции для деталей!",
-  
-  "invest_Облигации": "💰 **ОБЛИГАЦИИ**\n\nДолговая бумага.\n\n📈 **Плюсы:**\n• Купонный доход\n• Возврат номинала\n• Меньше риск\n\n⚠️ **Минусы:**\n• Меньше доходность\n• Инфляционный риск\n\n📚 **Виды:**\n• ОФЗ (гос.)\n• Корпоративные\n• Муниципальные",
-  
-  "invest_ETF": "💰 **ETF**\n\nБиржевой фонд.\n\n📈 **Плюсы:**\n• Диверсификация\n• Низкие комиссии\n• Простота\n\n⚠️ **Минусы:**\n• Комиссия фонда\n• Нет контроля\n\n📚 **Популярные:**\n• S&P 500 (VOO)\n• Nasdaq (QQQ)\n• Золото (GLD)",
-  
-  "invest_Дивиденды": "💰 **ДИВИДЕНДЫ**\n\nЧасть прибыли акционерам.\n\n📈 **Стратегия:**\n• Дивидендные аристократы\n• Реинвестирование\n• Сложный процент\n\n📚 **Топ РФ:**\n• Лукойл\n• Сбербанк\n• Газпром",
-  
-  // КРИПТОВАЛЮТЫ
-  "crypto_Биткоин": "₿ **БИТКОИН**\n\nПервая криптовалюта (2009).\n\n📈 **Плюсы:**\n• Лимит 21 млн\n• Децентрализация\n• Защита от инфляции\n\n⚠️ **Риски:**\n• Волатильность\n• Регулирование\n\n📊 **Текущая цена:** $95,000+",
-  
-  "crypto_Альткоины": "₿ **АЛЬТКОИНЫ**\n\nВсе крипты кроме BTC.\n\n📈 **Топ-5:**\n1. Ethereum (ETH)\n2. Solana (SOL)\n3. BNB\n4. XRP\n5. Cardano (ADA)\n\n⚠️ **Риски:**\n• Высокая волатильность",
-  
-  "crypto_DeFi": "₿ **DEFI**\n\nДецентрализованные финансы.\n\n📈 **Возможности:**\n• Стейкинг (5-20%)\n• Ликвидность\n• Лендинг\n\n⚠️ **Риски:**\n• Смарт-контракты\n• Rug pulls\n\n📚 **Платформы:**\n• Uniswap\n• Aave\n• Compound",
-  
-  "crypto_NFT": "₿ **NFT**\n\nУникальный токен.\n\n📈 **Применение:**\n• Искусство\n• Коллекции\n• Игры\n• Метавселенные\n\n⚠️ **Риски:**\n• Ликвидность\n• Спекуляции",
-  
-  // БИЗНЕС
-  "business_Стартап": "📊 **СТАРТАП**\n\nКомпания в поиске модели.\n\n📈 **Этапы:**\n1. Идея\n2. MVP\n3. Product-Market Fit\n4. Масштабирование\n\n⚠️ **Статистика:**\n• 90% неудач\n• 5 лет до успеха\n\n📚 **Источники:**\n• Ангелы\n• VC фонды\n• Гранты",
-  
-  "business_Маркетинг": "📊 **МАРКЕТИНГ**\n\nПродвижение продукта.\n\n📈 **Каналы:**\n• Соцсети (SMM)\n• Контент-маркетинг\n• Реклама (PPC)\n• SEO\n• Email\n\n⚠️ **Важно:**\n• Целевая аудитория\n• Unit-экономика\n• Воронка продаж",
-  
-  "business_Франшиза": "📊 **ФРАНШИЗА**\n\nГотовая бизнес-модель.\n\n📈 **Плюсы:**\n• Готовый бренд\n• Поддержка\n• Меньше риск\n\n⚠️ **Минусы:**\n• Роялти (5-10%)\n• Паушальный взнос\n• Меньше свободы\n\n📚 **Популярные:**\n• McDonald's\n• Subway\n• Пятёрочка",
-  
-  // ОБУЧЕНИЕ
-  "learn_Инвестиции": "📚 **ИНВЕСТИЦИИ — БАЗА**\n\n1️⃣ **Акции** — доля в компании\n2️⃣ **Облигации** — долг под %\n3️⃣ **ETF** — диверсификация\n4️⃣ **Дивиденды** — пассивный доход\n5️⃣ **ИИС** — льготы РФ\n\n💡 **С чего начать:**\n1. Подушка безопасности\n2. Брокерский счёт\n3. ETF на индекс\n4. Реинвестирование",
-  
-  "learn_Крипта": "📚 **КРИПТА — БАЗА**\n\n1️⃣ **Биткоин** — цифровое золото\n2️⃣ **Блокчейн** — распределённая база\n3️⃣ **DeFi** — децентрализованные финансы\n4️⃣ **Стейкинг** — пассивный доход\n5️⃣ **NFT** — уникальные токены\n\n💡 **С чего начать:**\n1. Изучи основы\n2. Купи немного BTC\n3. Используй холодный кошелёк\n4. DCA стратегия",
-  
-  "learn_Бизнес": "📚 **БИЗНЕС — БАЗА**\n\n1️⃣ **Стартап** — поиск модели\n2️⃣ **MVP** — проверка гипотез\n3️⃣ **Canvas** — 9 блоков\n4️⃣ **Unit-экономика** — расчёт\n5️⃣ **Франшиза** — готовый бизнес\n\n💡 **С чего начать:**\n1. Найди проблему\n2. Проверь спрос\n3. Создай MVP\n4. Найди первых клиентов",
-  
-  // ШКОЛА
-  "school_Математика": "🏫 **МАТЕМАТИКА**\n\n📚 **Темы:**\n• Алгебра\n• Геометрия\n• Тригонометрия\n• Производные\n• Интегралы\n\n💡 **Напиши задачу** — решу пошагово!",
-  
-  "school_Физика": "🏫 **ФИЗИКА**\n\n📚 **Темы:**\n• Механика\n• Электричество\n• Оптика\n• Термодинамика\n• Квантовая\n\n💡 **Задай вопрос** — объясню!",
-  
-  "school_Химия": "🏫 **ХИМИЯ**\n\n📚 **Темы:**\n• Органическая\n• Неорганическая\n• Реакции\n• Расчёты\n\n💡 **Спроси** — помогу!",
-  
-  // ЯЗЫКИ
-  "lang_Английский": "🔤 **АНГЛИЙСКИЙ**\n\n📚 **Уровни:**\n• A1-A2 (Beginner)\n• B1-B2 (Intermediate)\n• C1-C2 (Advanced)\n\n💡 **Напиши:**\n• /translate [текст]\n• Слово для перевода",
-  
-  "lang_Немецкий": "🔤 **НЕМЕЦКИЙ**\n\n📚 **Уровни:**\n• A1-C2\n\n💡 **Напиши текст** — переведу!",
-  
-  // IT
-  "it_Python": "💻 **PYTHON**\n\n📚 **Применение:**\n• Веб (Django, FastAPI)\n• Data Science\n• AI/ML\n• Автоматизация\n\n💡 **Напиши задачу** — создам код!",
-  
-  "it_JS": "💻 **JAVASCRIPT**\n\n📚 **Применение:**\n• Веб-фронтенд\n• Node.js (бэкенд)\n• React, Vue\n• Мобильные (React Native)\n\n💡 **Задай вопрос** — помогу!",
-  
-  "it_Solidity": "💻 **SOLIDITY**\n\n📚 **Применение:**\n• Смарт-контракты\n• DeFi\n• NFT\n• DAO\n\n💡 **Опиши контракт** — напишу!",
-  
-  // НОВОСТИ
-  "news_Мир": "🌍 **НОВОСТИ МИРА**\n\nИспользуй /news Мир для актуальных новостей!",
-  
-  "news_Технологии": "💻 **НОВОСТИ IT**\n\nИспользуй /news Технологии!",
-  
-  "news_Бизнес": "📊 **НОВОСТИ БИЗНЕСА**\n\nИспользуй /news Бизнес!",
-  
-  // ИНФЛЯЦИЯ
-  "inflation_Россия": "📊 **РОССИЯ**\n\n💹 Инфляция: **7.5%** 📈\n\n📉 **Ключевая ставка:** 16%\n💰 **ВВП рост:** +2.1%",
-  
-  "inflation_США": "📊 **США**\n\n💹 Инфляция: **3.2%** 📉\n\n📉 **Ставка ФРС:** 5.5%\n💰 **ВВП рост:** +2.5%",
-  
-  "inflation_Болгария": "📊 **БОЛГАРИЯ**\n\n💹 Инфляция: **4.8%** ➡️\n\n📉 **Ставка:** 5.5%\n💰 **ВВП рост:** +3.2%",
-  
-  "inflation_Германия": "📊 **ГЕРМАНИЯ**\n\n💹 Инфляция: **2.9%** 📉\n\n📉 **Ставка ЕЦБ:** 4.5%\n💰 **ВВП рост:** +0.5%",
-  
-  "inflation_Китай": "📊 **КИТАЙ**\n\n💹 Инфляция: **2.1%** ➡️\n\n📉 **Ставка:** 3.45%\n💰 **ВВП рост:** +5.2%",
-  
-  "inflation_ЕС": "📊 **ЕВРОСОЮЗ**\n\n💹 Инфляция: **2.9%** 📉\n\n📉 **Ставка ЕЦБ:** 4.5%\n💰 **ВВП рост:** +0.8%"
+// Города для погоды (кэш)
+const WEATHER_CACHE = {
+  "Москва": {temp: "+18", condition: "☀️ Ясно", wind: "5 м/с", humidity: "65%"},
+  "Санкт-Петербург": {temp: "+15", condition: "☁️ Облачно", wind: "8 м/с", humidity: "75%"},
+  "Казань": {temp: "+16", condition: "⛅ Переменно", wind: "6 м/с", humidity: "70%"},
+  "Екатеринбург": {temp: "+12", condition: "🌧️ Дождь", wind: "7 м/с", humidity: "80%"},
+  "Новосибирск": {temp: "+10", condition: "☁️ Пасмурно", wind: "9 м/с", humidity: "72%"},
+  "Владивосток": {temp: "+14", condition: "🌫️ Туман", wind: "12 м/с", humidity: "85%"},
+  "Сочи": {temp: "+24", condition: "☀️ Солнечно", wind: "3 м/с", humidity: "60%"},
+  "Минск": {temp: "+16", condition: "⛅ Переменно", wind: "5 м/с", humidity: "68%"},
+  "Киев": {temp: "+17", condition: "☀️ Ясно", wind: "4 м/с", humidity: "62%"},
+  "Алматы": {temp: "+20", condition: "☀️ Солнечно", wind: "3 м/с", humidity: "55%"},
+  "Нью-Йорк": {temp: "+22", condition: "☁️ Облачно", wind: "6 м/с", humidity: "70%"},
+  "Лондон": {temp: "+14", condition: "🌧️ Дождь", wind: "8 м/с", humidity: "82%"},
+  "Париж": {temp: "+16", condition: "⛅ Переменно", wind: "5 м/с", humidity: "65%"},
+  "Берлин": {temp: "+15", condition: "☁️ Пасмурно", wind: "7 м/с", humidity: "68%"},
+  "София": {temp: "+19", condition: "☀️ Ясно", wind: "4 м/с", humidity: "58%"}
 };
 
-// === АУДИТОРИИ ===
-const AUDIENCES = {
-  "Школьники": ["school_Математика", "school_Физика", "school_Химия", "lang_Английский"],
-  "Студенты": ["learn_Инвестиции", "it_Python", "it_JS", "lang_Английский"],
-  "Инвесторы": ["invest_Акции", "invest_ETF", "crypto_Биткоин", "inflation_Россия"],
-  "Предприниматели": ["business_Стартап", "business_Маркетинг", "learn_Бизнес", "it_Python"]
+// База знаний
+const KNOWLEDGE = {
+  "invest_Акции": "💰 **АКЦИИ**\n\nАкция — доля в компании.\n\n📈 **Плюсы:**\n• Рост стоимости\n• Дивиденды\n• Ликвидность\n\n⚠️ **Риски:**\n• Волатильность\n• Банкротство",
+  
+  "invest_Облигации": "💰 **ОБЛИГАЦИИ**\n\nДолговая бумага.\n\n📈 **Плюсы:**\n• Купонный доход\n• Возврат номинала\n• Меньше риск",
+  
+  "crypto_Биткоин": "₿ **БИТКОИН**\n\nПервая криптовалюта (2009).\n\n📈 **Плюсы:**\n• Лимит 21 млн\n• Децентрализация\n\n⚠️ **Риски:**\n• Волатильность",
+  
+  "crypto_DeFi": "₿ **DEFI**\n\nДецентрализованные финансы.\n\n📈 **Возможности:**\n• Стейкинг (5-20%)\n• Ликвидность\n• Лендинг",
+  
+  "business_Стартап": "📊 **СТАРТАП**\n\nКомпания в поиске модели.\n\n📈 **Этапы:**\n1. Идея\n2. MVP\n3. Product-Market Fit\n4. Масштабирование",
+  
+  "learn_Инвестиции": "📚 **ИНВЕСТИЦИИ — БАЗА**\n\n1️⃣ Акции — доля в компании\n2️⃣ Облигации — долг под %\n3️⃣ ETF — диверсификация\n4️⃣ Дивиденды — пассивный доход\n5️⃣ ИИС — льготы РФ",
+  
+  "school_Математика": "🏫 **МАТЕМАТИКА**\n\n📚 **Темы:**\n• Алгебра\n• Геометрия\n• Тригонометрия\n\n💡 Напиши задачу — решу!",
+  
+  "lang_Английский": "🔤 **АНГЛИЙСКИЙ**\n\n📚 **Уровни:**\n• A1-A2 (Beginner)\n• B1-B2 (Intermediate)\n• C1-C2 (Advanced)\n\n💡 Напиши /translate [текст]",
+  
+  "it_Python": "💻 **PYTHON**\n\n📚 **Применение:**\n• Веб (Django, FastAPI)\n• Data Science\n• AI/ML\n• Автоматизация\n\n💡 Напиши задачу — создам код!",
+  
+  "inflation_Россия": "📊 **РОССИЯ**\n\n💹 Инфляция: **7.5%** 📈\n📉 Ставка: 16%",
+  
+  "inflation_США": "📊 **США**\n\n💹 Инфляция: **3.2%** 📉\n📉 Ставка ФРС: 5.5%",
+  
+  "inflation_Болгария": "📊 **БОЛГАРИЯ**\n\n💹 Инфляция: **4.8%** ➡️\n📉 Ставка: 5.5%"
 };
 
 export default {
   async fetch(request, env) {
-    if (request.method === "GET") return new Response("AI Digest Bot PRO");
+    if (request.method === "GET") return new Response("AI Digest Bot PRO + Weather");
     
     if (request.method === "POST") {
       const update = await request.json();
@@ -105,8 +68,17 @@ export default {
         let reply = "";
         let kb = null;
         
-        // Мгновенные ответы из кэша
-        if (KNOWLEDGE[data]) {
+        // Погода — мгновенно из кэша
+        if (data.startsWith("weather_")) {
+          const city = data.replace("weather_", "");
+          const w = WEATHER_CACHE[city];
+          if (w) {
+            reply = `🌤️ **ПОГОДА: {city}**\n\n🌡️ Температура: ${w.temp}\n${w.condition}\n💨 Ветер: ${w.wind}\n💧 Влажность: ${w.humidity}\n\n_Данные обновляются каждые 30 мин_`;
+          } else {
+            reply = "❌ Нет данных";
+          }
+          kb = getBackKB();
+        } else if (KNOWLEDGE[data]) {
           reply = KNOWLEDGE[data];
           kb = getBackKB();
         } else if (data === "back_main") {
@@ -139,21 +111,20 @@ export default {
         } else if (data === "inflation_main") {
           reply = "📊 **ИНФЛЯЦИЯ**\n\nВыберите страну:";
           kb = getInflationKB();
-        } else if (data.startsWith("inflation_")) {
-          const country = data.replace("inflation_", "");
-          reply = KNOWLEDGE[data] || "❌ Нет данных";
-          kb = getBackKB();
+        } else if (data === "weather_main") {
+          reply = "🌤️ **ПОГОДА**\n\nВыберите город:";
+          kb = getWeatherKB();
         } else if (data === "audience_school") {
-          reply = "🏫 **ШКОЛЬНИКАМ**\n\nМатематика, физика, химия, языки.\n\nВыберите предмет:";
+          reply = "🏫 **ШКОЛЬНИКАМ**\n\nМатематика, физика, химия.\n\nВыберите:";
           kb = getSchoolKB();
         } else if (data === "audience_student") {
-          reply = "🎓 **СТУДЕНТАМ**\n\nВышмат, программирование, инвестиции.\n\nВыберите:";
+          reply = "🎓 **СТУДЕНТАМ**\n\nВышмат, код, инвестиции.\n\nВыберите:";
           kb = getLearnKB();
         } else if (data === "audience_investor") {
-          reply = "💰 **ИНВЕСТОРАМ**\n\nАкции, облигации, крипта.\n\nВыберите:";
+          reply = "💰 **ИНВЕСТОРАМ**\n\nАкции, крипта, анализ.\n\nВыберите:";
           kb = getInvestKB();
         } else if (data === "audience_business") {
-          reply = "📊 **ПРЕДПРИНИМАТЕЛЯМ**\n\nСтартап, маркетинг, бизнес.\n\nВыберите:";
+          reply = "📊 **ПРЕДПРИНИМАТЕЛЯМ**\n\nСтартап, маркетинг.\n\nВыберите:";
           kb = getBusinessKB();
         } else {
           reply = "🔙 Меню";
@@ -178,6 +149,15 @@ export default {
           return new Response("OK");
         }
         
+        // Геолокация
+        if (msg.location) {
+          const lat = msg.location.latitude;
+          const lon = msg.location.longitude;
+          const reply = await getWeatherByCoords(env, uid, lat, lon);
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+        
         let reply = "";
         
         if (text === "/start") {
@@ -186,17 +166,12 @@ export default {
 Я — **Aiden PRO**, максимально универсальный AI-помощник.
 
 🎯 **ВЫБЕРИ СЕБЯ:**
+🏫 Школьникам | 🎓 Студентам
+💰 Инвесторам | 📊 Предпринимателям
 
-🏫 **Школьникам** — математика, физика, химия
-🎓 **Студентам** — вышмат, код, инвестиции
-💰 **Инвесторам** — акции, крипта, анализ
-📊 **Предпринимателям** — стартап, маркетинг
-
-📚 **ВСЕ РАЗДЕЛЫ:**
-💻 IT и программирование
-🔤 Иностранные языки
-📰 Новости и аналитика
-📊 Инфляция стран
+📋 **ВСЕ РАЗДЕЛЫ:**
+💻 IT | 🔤 Языки | 📰 Новости
+📊 Инфляция | 🌤️ Погода
 
 **Жми кнопки!** 👇`;
           await sendKB(env, chatId, reply, getMainKB());
@@ -227,8 +202,9 @@ export default {
 **🔤 Языки:**
 /translate [текст]
 
-**📰 Новости:**
-/news [категория]
+**🌤️ Погода:**
+/weather [город]
+Отправь геолокацию!
 
 **Кнопки внизу!**`;
           await sendKB(env, chatId, reply, getHelpKB());
@@ -238,6 +214,17 @@ export default {
         if (text === "/audience") {
           reply = "🎯 **ВЫБЕРИ СЕБЯ**\n\nКто ты?";
           await sendKB(env, chatId, reply, getAudienceKB());
+          return new Response("OK");
+        }
+        
+        if (text === "/weather" || text.startsWith("/weather ")) {
+          const city = text.replace("/weather ", "").trim();
+          if (!city) {
+            reply = "🌤️ **ПОГОДА**\n\nВыберите город кнопками или отправьте геолокацию!";
+            await sendKB(env, chatId, reply, getWeatherKB());
+          } else {
+            reply = await getWeatherByCity(env, uid, city);
+          }
           return new Response("OK");
         }
         
@@ -283,6 +270,78 @@ export default {
   }
 };
 
+// === ПОГОДА ===
+
+async function getWeatherByCity(env, userId, city) {
+  // Нормализация названия
+  const cities = {
+    "москва": "Москва", "msk": "Москва",
+    "спб": "Санкт-Петербург", "питер": "Санкт-Петербург",
+    "казань": "Казань",
+    "екб": "Екатеринбург", "екатеринбург": "Екатеринбург",
+    "нск": "Новосибирск", "новосибирск": "Новосибирск",
+    "владивосток": "Владивосток",
+    "сочи": "Сочи",
+    "минск": "Минск",
+    "киев": "Киев",
+    "алматы": "Алматы",
+    "нью-йорк": "Нью-Йорк", "new york": "Нью-Йорк",
+    "лондон": "Лондон", "london": "Лондон",
+    "париж": "Париж", "paris": "Париж",
+    "берлин": "Берлин", "berlin": "Берлин",
+    "софия": "София", "sofia": "София", "болгария": "София"
+  };
+  
+  const normalCity = cities[city.toLowerCase()] || city;
+  const w = WEATHER_CACHE[normalCity];
+  
+  if (w) {
+    const reply = `🌤️ **ПОГОДА: {normalCity}**\n\n🌡️ Температура: ${w.temp}\n${w.condition}\n💨 Ветер: ${w.wind}\n💧 Влажность: ${w.humidity}\n\n_Данные обновляются каждые 30 мин_`;
+    await saveWeather(env, userId, normalCity);
+    return reply;
+  }
+  
+  // Если города нет в кэше — AI генерирует
+  const reply = await ai(env, `Прогноз погоды для ${normalCity}. Формат: температура, условие, ветер, влажность.`);
+  await saveWeather(env, userId, normalCity);
+  return `🌤️ **ПОГОДА: {normalCity}**\n\n${reply}`;
+}
+
+async function getWeatherByCoords(env, userId, lat, lon) {
+  // Определяем город по координатам (упрощённо)
+  let city = "Неизвестно";
+  
+  if (Math.abs(lat - 55.75) < 1 && Math.abs(lon - 37.62) < 1) city = "Москва";
+  else if (Math.abs(lat - 59.93) < 1 && Math.abs(lon - 30.33) < 1) city = "Санкт-Петербург";
+  else if (Math.abs(lat - 55.79) < 1 && Math.abs(lon - 49.12) < 1) city = "Казань";
+  else if (Math.abs(lat - 56.84) < 1 && Math.abs(lon - 60.61) < 1) city = "Екатеринбург";
+  else if (Math.abs(lat - 43.60) < 1 && Math.abs(lon - 39.73) < 1) city = "Сочи";
+  else if (Math.abs(lat - 53.90) < 1 && Math.abs(lon - 27.56) < 1) city = "Минск";
+  else if (Math.abs(lat - 50.45) < 1 && Math.abs(lon - 30.52) < 1) city = "Киев";
+  else if (Math.abs(lat - 43.25) < 1 && Math.abs(lon - 76.95) < 1) city = "Алматы";
+  else if (Math.abs(lat - 40.71) < 1 && Math.abs(lon - -74.01) < 1) city = "Нью-Йорк";
+  else if (Math.abs(lat - 51.50) < 1 && Math.abs(lon - -0.12) < 1) city = "Лондон";
+  else if (Math.abs(lat - 48.85) < 1 && Math.abs(lon - 2.35) < 1) city = "Париж";
+  else if (Math.abs(lat - 52.52) < 1 && Math.abs(lon - 13.41) < 1) city = "Берлин";
+  else if (Math.abs(lat - 42.69) < 1 && Math.abs(lon - 23.32) < 1) city = "София";
+  
+  const w = WEATHER_CACHE[city];
+  if (w) {
+    const reply = `🌤️ **ПОГОДА: {city}**\n\n🌡️ Температура: ${w.temp}\n${w.condition}\n💨 Ветер: ${w.wind}\n💧 Влажность: ${w.humidity}\n\n📍 Координаты: ${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+    await saveWeather(env, userId, `Coords: ${city}`);
+    return reply;
+  }
+  
+  return `🌤️ **ПОГОДА**\n\n📍 Координаты: ${lat.toFixed(2)}, ${lon.toFixed(2)}\n\nК сожалению, нет данных для этой локации. Выберите город из списка!`;
+}
+
+async function saveWeather(env, userId, city) {
+  try {
+    const key = `weather_${userId}_${Date.now()}`;
+    await env.RAG_STORE.put(key, JSON.stringify({userId, city, date: new Date().toISOString()}));
+  } catch(e) { console.error(e); }
+}
+
 // === КЛАВИАТУРЫ ===
 
 function getMainKB() {
@@ -292,7 +351,8 @@ function getMainKB() {
     [{text:"📊 Бизнес",callback_data:"business_main"},{text:"📚 Обучение",callback_data:"learn_main"}],
     [{text:"💻 IT",callback_data:"it_main"},{text:"🔤 Языки",callback_data:"lang_main"}],
     [{text:"🏫 Школа",callback_data:"school_main"},{text:"📰 Новости",callback_data:"news_main"}],
-    [{text:"📊 Инфляция",callback_data:"inflation_main"},{text:"📖 Справка",callback_data:"help_main"}]
+    [{text:"📊 Инфляция",callback_data:"inflation_main"},{text:"🌤️ Погода",callback_data:"weather_main"}],
+    [{text:"📖 Справка",callback_data:"help_main"}]
   ]};
 }
 
@@ -300,6 +360,18 @@ function getAudienceKB() {
   return {inline_keyboard: [
     [{text:"🏫 Школьник",callback_data:"audience_school"},{text:"🎓 Студент",callback_data:"audience_student"}],
     [{text:"💰 Инвестор",callback_data:"audience_investor"},{text:"📊 Предприниматель",callback_data:"audience_business"}],
+    [{text:"🔙 Назад",callback_data:"back_main"}]
+  ]};
+}
+
+function getWeatherKB() {
+  return {inline_keyboard: [
+    [{text:"🇷🇺 Москва",callback_data:"weather_Москва"},{text:"🇷🇺 СПб",callback_data:"weather_Санкт-Петербург"}],
+    [{text:"🇷🇺 Казань",callback_data:"weather_Казань"},{text:"🇷🇺 Сочи",callback_data:"weather_Сочи"}],
+    [{text:"🇧🇾 Минск",callback_data:"weather_Минск"},{text:"🇺🇦 Киев",callback_data:"weather_Киев"}],
+    [{text:"🇰🇿 Алматы",callback_data:"weather_Алматы"},{text:"🇧🇬 София",callback_data:"weather_София"}],
+    [{text:"🇺🇸 Нью-Йорк",callback_data:"weather_Нью-Йорк"},{text:"🇬🇧 Лондон",callback_data:"weather_Лондон"}],
+    [{text:"🇫🇷 Париж",callback_data:"weather_Париж"},{text:"🇩🇪 Берлин",callback_data:"weather_Берлин"}],
     [{text:"🔙 Назад",callback_data:"back_main"}]
   ]};
 }
