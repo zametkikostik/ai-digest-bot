@@ -1,0 +1,41 @@
+{
+  "name": "ai-digest-bot",
+  "main": "src/worker.js",
+  "compatibility_date": "2024-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  
+  "vars": {
+    "BOT_NAME": "AI-дайджест",
+    "BOT_TOPIC": "Всё об искусственном интеллекте за неделю",
+    "ADMIN_IDS": "1271633868",
+    "CHANNEL_ID": "-1001234567890"
+  },
+  
+  "secrets": [
+    "BOT_TOKEN",
+    "OPENROUTER_API_KEY"
+  ],
+  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ai-digest-bot-db",
+      "database_id": "YOUR_DATABASE_ID"
+    }
+  ],
+  
+  "kv_namespaces": [
+    {
+      "binding": "RAG_STORE",
+      "id": "YOUR_KV_ID"
+    },
+    {
+      "binding": "CONVERSATION_STORE",
+      "id": "YOUR_CONVERSATION_KV_ID"
+    }
+  ],
+  
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  }
+}
