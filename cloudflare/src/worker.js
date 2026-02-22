@@ -1,90 +1,81 @@
 /**
- * AI Digest Bot - INVESTMENT & CRYPTO EDITION
- * Автопостинг: Инвестиции, Бизнес, Криптовалюты
- * Канал: @investora_zametki
+ * AI Digest Bot - PRIVATE INVESTMENT CHAT EDITION
+ * Закрытый чат: https://t.me/+CBHQG7uflyFmY2Ey
+ * Инвестиции, Криптовалюты, Бизнес
  */
-const CHANNEL_ID = "-1001859702206"; // ai_world_russia
-const INVEST_CHANNEL = "@investora_zametki"; // инвестиционный канал
 const ADMIN_IDS = ["1271633868"];
 
-// Темы для автопостинга
-const INVEST_TOPICS = [
-  "Топ-5 акций для покупки в 2026",
-  "Как начать инвестировать с 1000₽",
-  "Обзор ETF фондов для новичков",
-  "Дивидендные стратегии",
-  "Как оценить компанию перед покупкой акций",
-  "Риски на фондовом рынке",
-  "Пассивный доход: мифы и реальность",
-  "Сложный процент: как работает",
-  "ИИС vs брокерский счёт",
-  "Облигации: стоит ли покупать"
-];
-
-const CRYPTO_TOPICS = [
-  "Биткоин vs Золото: что выбрать",
-  "Обзор альткоинов на 2026",
-  "DeFi: заработок на ликвидности",
-  "Стейкинг криптовалют: гайд",
-  "NFT: стоит ли покупать",
-  "Блокчейн технологии: применение",
-  "Криптовалютные кошельки: виды",
-  "Трейдинг: стратегии для новичков",
-  "Анализ рынка криптовалют",
-  "Регулирование крипторынка"
-];
-
-const BUSINESS_TOPICS = [
-  "Как открыть стартап с нуля",
-  "Бизнес-модель Canvas: разбор",
-  "Франшиза vs свой бренд",
-  "Маркетинг для малого бизнеса",
-  "Как найти первых клиентов",
-  "Бизнес-план: структура",
-  "Инвестиции в стартапы",
-  "Масштабирование бизнеса",
-  "Онлайн бизнес: идеи 2026",
-  "Бухгалтерия для ИП и ООО"
-];
-
-// База знаний (самообучение)
+// База знаний для самообучения
 const KNOWLEDGE_BASE = {
   investments: [
     "Акции — доля владения компанией. Покупая акции, вы становитесь совладельцем.",
     "Облигации — долговые бумаги. Вы даёте в долг компании/государству под процент.",
-    "ETF — биржевой фонд, который повторяет индекс (например, S&P 500).",
-    "Дивиденды — часть прибыли компании, которую выплачивают акционерам.",
-    "ИИС — индивидуальный инвестиционный счёт с налоговыми льготами в РФ."
+    "ETF — биржевой фонд, повторяющий индекс (например, S&P 500).",
+    "Дивиденды — часть прибыли компании акционерам.",
+    "ИИС — индивидуальный инвестсчёт с налоговыми льготами в РФ.",
+    "Диверсификация — распределение капитала для снижения рисков.",
+    "Сложный процент — реинвестирование прибыли для роста капитала."
   ],
   crypto: [
-    "Биткоин — первая криптовалюта, создана в 2009 году Сатоши Накамото.",
-    "Блокчейн — распределённая база данных, лежащая в основе криптовалют.",
-    "DeFi — децентрализованные финансы на базе смарт-контрактов.",
-    "Стейкинг — заработок на хранении криптовалюты в Proof-of-Stake сетях.",
-    "NFT — уникальный токен, представляющий право на цифровой актив."
+    "Биткоин — первая криптовалюта, создана в 2009 году.",
+    "Блокчейн — распределённая база данных для криптовалют.",
+    "DeFi — децентрализованные финансы на смарт-контрактах.",
+    "Стейкинг — заработок на хранении в PoS сетях.",
+    "NFT — уникальный токен цифрового актива.",
+    "Альткоины — все криптовалюты кроме Биткоина.",
+    "HODL — стратегия долгосрочного хранения крипты."
   ],
   business: [
-    "Стартап — компания в поиске повторяемой и масштабируемой бизнес-модели.",
-    "Бизнес-модель Canvas — инструмент описания бизнеса из 9 блоков.",
-    "Франшиза — право использовать бренд и бизнес-модель за роялти.",
-    "MVP — минимально жизнеспособный продукт для проверки гипотез.",
-    "Unit-экономика — расчёт экономики одного клиента/продукта."
+    "Стартап — компания в поиске масштабируемой бизнес-модели.",
+    "Бизнес-модель Canvas — инструмент описания из 9 блоков.",
+    "Франшиза — право использовать бренд за роялти.",
+    "MVP — минимальный продукт для проверки гипотез.",
+    "Unit-экономика — расчёт экономики одного клиента.",
+    "B2B — бизнес для бизнеса.",
+    "B2C — бизнес для потребителей."
+  ]
+};
+
+// Темы для автопостинга
+const AUTO_TOPICS = {
+  invest: [
+    "Топ-5 акций для покупки в 2026",
+    "Как начать инвестировать с 1000₽",
+    "Обзор ETF фондов для новичков",
+    "Дивидендные стратегии",
+    "Как оценить компанию перед покупкой"
+  ],
+  crypto: [
+    "Биткоин vs Золото: что выбрать",
+    "Обзор альткоинов на 2026",
+    "DeFi: заработок на ликвидности",
+    "Стейкинг криптовалют: гайд",
+    "Анализ рынка криптовалют"
+  ],
+  business: [
+    "Как открыть стартап с нуля",
+    "Бизнес-модель Canvas: разбор",
+    "Франшиза vs свой бренд",
+    "Маркетинг для малого бизнеса",
+    "Онлайн бизнес: идеи 2026"
   ]
 };
 
 export default {
   async fetch(request, env) {
-    if (request.method === "GET") return new Response("Investment Bot OK");
+    if (request.method === "GET") return new Response("Aiden Invest Bot OK");
     
     if (request.method === "POST") {
       const update = await request.json();
       
+      // Кнопки
       if (update.callback_query) {
         const cb = update.callback_query;
         await handleCallback(env, cb.message.chat.id, cb.data, cb.message.message_id);
         return new Response("OK");
       }
       
+      // Сообщения
       if (update.message) {
         const msg = update.message;
         const chatId = msg.chat.id;
@@ -93,7 +84,9 @@ export default {
         const uid = msg.from?.id?.toString();
         const chatType = msg.chat.type;
         
-        if ((chatType === "group" || chatType === "supergroup") && !text.includes("@AidenHelpbot")) {
+        // В группах отвечаем на команды и упоминания
+        const isGroup = chatType === "group" || chatType === "supergroup";
+        if (isGroup && !text.startsWith("/") && !text.includes("@AidenHelpbot")) {
           return new Response("OK");
         }
         
@@ -102,7 +95,7 @@ export default {
         if (text === "/start") {
           reply = `👋 Привет, ${name}!
 
-Я — **Aiden INVEST**, твой AI-помощник по инвестициям.
+Я — **Aiden**, твой AI-помощник по инвестициям.
 
 💰 **ТЕМЫ:**
 • Инвестиции и акции
@@ -114,8 +107,7 @@ export default {
 /crypto [вопрос] — про крипту
 /business [вопрос] — про бизнес
 /learn [тема] — обучение
-/portfolio — мой портфель
-/news — новости рынка
+/news — новости рынков
 
 **Жми кнопки!** 👇`;
           await sendKB(env, chatId, reply, getMainKB());
@@ -125,20 +117,24 @@ export default {
         if (text === "/help") {
           reply = `📖 **СПРАВКА:**
 
-**Инвестиции:**
+**💰 Инвестиции:**
 /invest Акции — про акции
 /invest Облигации — про облигации
+/invest ETF — про фонды
 
-**Крипта:**
+**₿ Криптовалюты:**
 /crypto Биткоин — про BTC
 /crypto DeFi — про DeFi
+/crypto NFT — про NFT
 
-**Бизнес:**
+**📊 Бизнес:**
 /business Стартап — про стартапы
+/business Маркетинг — про маркетинг
 
-**Обучение:**
+**📚 Обучение:**
 /learn Инвестиции — база
 /learn Крипта — база
+/learn Бизнес — база
 
 **Кнопки внизу!**`;
           await sendKB(env, chatId, reply, getHelpKB());
@@ -157,16 +153,17 @@ export default {
         } else if (text.startsWith("/learn ")) {
           const topic = text.replace("/learn ", "");
           reply = await learnTopic(env, uid, topic);
-        } else if (text === "/portfolio") {
-          reply = "📊 **ПОРТФЕЛЬ**\n\nФункция в разработке. Скоро!";
         } else if (text === "/news") {
           reply = await getMarketNews(env, uid);
         } else if (text.startsWith("/ask ")) {
           reply = await ai(env, text.replace("/ask ", ""));
         } else if (text.startsWith("/")) {
-          reply = "❓ /help";
+          reply = "❓ Неизвестная команда. Используйте /help";
+        } else if (text.includes("@AidenHelpbot")) {
+          const q = text.replace("@AidenHelpbot", "").trim();
+          reply = await ai(env, q);
         } else {
-          reply = await ai(env, text);
+          return new Response("OK"); // Игнорируем обычные сообщения
         }
         
         if (reply) await sendMsg(env.BOT_TOKEN, chatId, reply);
@@ -178,40 +175,24 @@ export default {
     return new Response("No");
   },
   
-  // АВТОПОСТИНГ
+  // АВТОПОСТИНГ (каждые 6 часов)
   async scheduled(event, env) {
     const hour = new Date().getUTCHours();
-    const day = new Date().getUTCDay();
     
-    // 9:00 UTC — Инвестиции (понедельник, среда, пятница)
-    if (hour === 9 && [1, 3, 5].includes(day)) {
-      const topic = INVEST_TOPICS[Math.floor(Math.random() * INVEST_TOPICS.length)];
-      const post = await generateInvestPost(env, topic);
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, post);
-      console.log(`Invest post: ${topic}`);
+    if (hour === 6) {
+      const topic = AUTO_TOPICS.invest[Math.floor(Math.random() * AUTO_TOPICS.invest.length)];
+      const post = await generatePost(env, "invest", topic);
+      await broadcastPost(env, post);
     }
-    
-    // 12:00 UTC — Криптовалюты (вторник, четверг)
-    if (hour === 12 && [2, 4].includes(day)) {
-      const topic = CRYPTO_TOPICS[Math.floor(Math.random() * CRYPTO_TOPICS.length)];
-      const post = await generateCryptoPost(env, topic);
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, post);
-      console.log(`Crypto post: ${topic}`);
+    if (hour === 12) {
+      const topic = AUTO_TOPICS.crypto[Math.floor(Math.random() * AUTO_TOPICS.crypto.length)];
+      const post = await generatePost(env, "crypto", topic);
+      await broadcastPost(env, post);
     }
-    
-    // 15:00 UTC — Бизнес (понедельник, четверг)
-    if (hour === 15 && [1, 4].includes(day)) {
-      const topic = BUSINESS_TOPICS[Math.floor(Math.random() * BUSINESS_TOPICS.length)];
-      const post = await generateBusinessPost(env, topic);
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, post);
-      console.log(`Business post: ${topic}`);
-    }
-    
-    // 18:00 UTC — Дайджест (ежедневно)
     if (hour === 18) {
-      const digest = await generateDailyDigest(env);
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, digest);
-      console.log("Daily digest posted");
+      const topic = AUTO_TOPICS.business[Math.floor(Math.random() * AUTO_TOPICS.business.length)];
+      const post = await generatePost(env, "business", topic);
+      await broadcastPost(env, post);
     }
   }
 };
@@ -320,6 +301,13 @@ function sendMsg(token, chatId, text) {
   }).then(r => r.json());
 }
 
+async function broadcastPost(env, text) {
+  // Отправка в закрытый чат (нужно добавить бота в чат)
+  try {
+    await sendMsg(env.BOT_TOKEN, "-1001234567890", text); // Замените на ID чата
+  } catch(e) { console.error("Broadcast error:", e); }
+}
+
 // === AI ФУНКЦИИ ===
 
 async function investAnswer(env, userId, question) {
@@ -358,33 +346,17 @@ async function learnTopic(env, userId, topic) {
 }
 
 async function getMarketNews(env, userId) {
-  const sys = "Ты финансовый аналитик. Дай краткий обзор рынков: акции, крипта, нефть, золото.";
+  const sys = "Дай краткий обзор рынков: акции, крипта, нефть, золото.";
   const answer = await ai(env, sys);
   return `📰 **РЫНКИ**:\n\n${answer}`;
 }
 
-async function generateInvestPost(env, topic) {
-  const sys = "Создай пост для Telegram канала про инвестиции. Заголовок с эмодзи, текст 500-800 символов, 3-5 хэштегов, призыв к действию.";
+async function generatePost(env, category, topic) {
+  const prefixes = {invest:"💰", crypto:"₿", business:"📊"};
+  const hashtags = {invest:"#Инвестиции #Финансы", crypto:"#Крипта #Биткоин", business:"#Бизнес #Стартап"};
+  const sys = "Пост для Telegram. Заголовок с эмодзи, текст 500-800 символов, хэштеги.";
   const answer = await ai(env, sys + "\nТема: " + topic);
-  return `💰 **{topic}**\n\n${answer}\n\n#Инвестиции #Финансы`;
-}
-
-async function generateCryptoPost(env, topic) {
-  const sys = "Создай пост про криптовалюты. Заголовок с эмодзи, текст, хэштеги.";
-  const answer = await ai(env, sys + "\nТема: " + topic);
-  return `₿ **{topic}**\n\n${answer}\n\n#Крипта #Биткоин`;
-}
-
-async function generateBusinessPost(env, topic) {
-  const sys = "Создай пост про бизнес. Заголовок, текст, хэштеги.";
-  const answer = await ai(env, sys + "\nТема: " + topic);
-  return `📊 **{topic}**\n\n${answer}\n\n#Бизнес #Стартап`;
-}
-
-async function generateDailyDigest(env) {
-  const sys = "Дайджест рынков за день: акции, крипта, нефть, золото. Кратко, по делу.";
-  const answer = await ai(env, sys);
-  return `📰 **ДАЙДЖЕСТ**\n${new Date().toLocaleDateString('ru-RU')}\n\n${answer}`;
+  return `${prefixes[category]} **{topic}**\n\n${answer}\n\n${hashtags[category]}`;
 }
 
 async function saveLearn(env, userId, category, question, answer) {
