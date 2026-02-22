@@ -1,49 +1,20 @@
 /**
- * AI Digest Bot - Universal Assistant + News Analyst
- * Новости мира, аналитика, обзоры для каналов
+ * AI Digest Bot - MAXIMUM UNIVERSAL AI ASSISTANT
+ * Все темы + Программирование + Смарт-контракты Solidity + Новости
  */
 const CHANNEL_ID = "-1001859702206";
 const ADMIN_IDS = ["1271633868"];
-
-// Новостные категории
-const NEWS_CATEGORIES = [
-  "Технологии и ИИ",
-  "Бизнес и финансы",
-  "Наука и медицина",
-  "Политика (международная)",
-  "Экономика",
-  "Спорт",
-  "Культура и развлечения",
-  "Экология и климат",
-  "Космос",
-  "Образование"
-];
-
-// Страны для новостей
-const COUNTRIES = [
-  "Россия",
-  "США",
-  "Китай",
-  "Европейский союз",
-  "Великобритания",
-  "Япония",
-  "Индия",
-  "Бразилия",
-  "Германия",
-  "Франция"
-];
 
 export default {
   async fetch(request, env) {
     try {
       if (request.method === "GET") {
-        return new Response("AI Digest Bot 🤖\nНовости + Аналитика");
+        return new Response("AI Digest Bot 🤖\nУниверсальный AI-помощник PRO");
       }
       
       if (request.method === "POST") {
         const update = await request.json();
         
-        // Обработка сообщений
         if (update.message) {
           const msg = update.message;
           const chatId = msg.chat.id;
@@ -53,13 +24,9 @@ export default {
           const chatType = msg.chat.type;
           
           const isGroup = chatType === "group" || chatType === "supergroup";
-          const isChannel = chatType === "channel";
           const mentionedInGroup = isGroup && (text.includes("@AidenHelpbot") || msg.reply_to_message?.from?.is_bot);
           
-          // В группах отвечаем только на упоминания
-          if (isGroup && !mentionedInGroup) {
-            return new Response("OK");
-          }
+          if (isGroup && !mentionedInGroup) return new Response("OK");
           
           let reply = "";
           
@@ -67,88 +34,159 @@ export default {
           if (text === "/start") {
             reply = `👋 Привет, ${name}!
 
-Я — **Aiden**, универсальный AI-помощник с функцией новостного аналитика.
+Я — **Aiden PRO**, максимально универсальный AI-помощник.
 
-🌟 **Что я умею:**
+🌟 **ВСЕ ВОЗМОЖНОСТИ:**
 
-📰 **Новости и аналитика:**
-• Новости всех стран мира
+💻 **ПРОГРАММИРОВАНИЕ:**
+• Python, JavaScript, TypeScript, Go, Rust, Java, C++
+• Solidity (смарт-контракты)
+• Web3, DeFi, NFT
+• Отладка, рефакторинг, тесты
+
+📰 **НОВОСТИ И АНАЛИТИКА:**
+• Новости всех стран
 • Аналитические обзоры
 • Прогнозы и тренды
-• Для новостных каналов
+• Дайджесты
 
-💻 **Программирование:**
-• Написание кода
-• Отладка и объяснение
+📊 **БИЗНЕС:**
+• Бизнес-планы, стратегии
+• Маркетинг, финансы
+• Стартапы, инвестиции
 
-📊 **Бизнес:**
-• Бизнес-консультации
-• Планы и стратегии
-
-⚖️ **Юриспруденция:**
+⚖️ **ЮРИСПРУДЕНЦИЯ:**
 • Правовая информация
 • Шаблоны документов
+• Консультации
 
-🏡 **Дом и сад:**
-• Советы по хозяйству
-• Садоводство
+🏡 **ДОМ И САД:**
+• Садоводство, растения
+• Ремонт, строительство
+• Домашние советы
 
-📋 **Команды:**
-• /help — справка
-• /news [категория] — новости
-• /analyze [тема] — аналитика
-• /review [событие] — обзор
-• /forecast [тема] — прогноз
-• /digest — дайджест за день
-• /ask [вопрос] — любой вопрос
-• /code [задача] — написать код
-• /business [вопрос] — бизнес
-• /legal [вопрос] — юриспруденция
-• /garden [вопрос] — сад
+📚 **ОБРАЗОВАНИЕ:**
+• Помощь с учёбой
+• Объяснение концепций
+• Языки, наука
 
-💡 Для новостных каналов:
-Добавьте бота и используйте /news или автопостинг!`;
+📋 **КОМАНДЫ:**
+
+💻 **Код:**
+/code [задача] — написать код
+/solidity [контракт] — смарт-контракт
+/debug [код] — найти ошибку
+/explain [концепция] — объяснить
+/refactor [код] — улучшить
+
+📰 **Новости:**
+/news [категория] — новости
+/analyze [тема] — аналитика
+/review [событие] — обзор
+/forecast [тема] — прогноз
+/digest — дайджест
+/world [страна] — новости страны
+
+📊 **Бизнес:**
+/business [вопрос] — консультация
+/plan [идея] — бизнес-план
+
+⚖️ **Право:**
+/legal [вопрос] — информация
+/doc [тип] — шаблон
+
+🏡 **Дом:**
+/garden [вопрос] — сад
+/home [вопрос] — дом
+
+📚 **Общее:**
+/ask [вопрос] — любой вопрос
+/memory — диалоги
+/help — справка
+
+💡 **Примеры:**
+• /solidity Токен ERC20
+• /code API на FastAPI
+• /news Технологии
+• /analyze Влияние ИИ
+• /business Как открыть ИП?
+
+🚀 Напиши любой вопрос — я помогу!`;
             
           } else if (text === "/help") {
-            reply = `📖 **Справка:**
+            reply = `📖 **ПОЛНАЯ СПРАВКА:**
 
-**📰 Новости:**
-/news [категория] — новости категории
-/news — последние новости
+**💻 ПРОГРАММИРОВАНИЕ:**
+/code [задача] — код на любом языке
+/solidity [контракт] — смарт-контракт
+/debug [код] — отладка
+/explain [концепция] — объяснение
+/refactor [код] — улучшение
+/test [код] — написать тесты
+
+**📰 НОВОСТИ:**
+/news [категория] — новости
 /analyze [тема] — аналитика
-/review [событие] — обзор события
+/review [событие] — обзор
 /forecast [тема] — прогноз
 /digest — дайджест за день
 /world [страна] — новости страны
 
-**💻 Программирование:**
-/code [задача] — написать код
-/debug [код] — найти ошибку
-
-**📊 Бизнес:**
+**📊 БИЗНЕС:**
 /business [вопрос] — консультация
 /plan [идея] — бизнес-план
+/marketing [продукт] — стратегия
 
-**⚖️ Юриспруденция:**
+**⚖️ ЮРИСПРУДЕНЦИЯ:**
 /legal [вопрос] — информация
-/doc [тип] — шаблон
+/doc [тип] — шаблон документа
 
-**🏡 Дом и сад:**
-/garden [вопрос] — совет
+**🏡 ДОМ И САД:**
+/garden [вопрос] — сад/огород
+/home [вопрос] — дом/ремонт
 
-**📚 Общее:**
+**📚 ОБРАЗОВАНИЕ:**
 /ask [вопрос] — любой вопрос
-/memory — диалоги
+/explain [концепция] — объяснить
 
-**Примеры:**
-• /news Технологии
-• /analyze Влияние ИИ на экономику
-• /review Выборы в США
-• /forecast Рынок криптовалют`;
+**🔧 ЕЩЁ:**
+/memory — мои диалоги
+/start — приветствие
+
+**ЯЗЫКИ ПРОГРАММИРОВАНИЯ:**
+Python, JavaScript, TypeScript, Go, Rust, Java, C++, PHP, Ruby, Swift, Kotlin, Solidity, Vyper
+
+**ПРИМЕРЫ:**
+• /solidity NFT контракт
+• /code Телеграм бот на Python
+• /news ИИ
+• /analyze Криптовалюты
+• /business Кофейня
+• /legal Договор аренды`;
+            
+          } else if (text === "/code" || text.startsWith("/code ")) {
+            const task = text.replace("/code ", "").trim();
+            reply = task ? await writeCode(env, uid, task) : "⚠️ Опишите задачу!";
+            
+          } else if (text === "/solidity" || text.startsWith("/solidity ")) {
+            const contract = text.replace("/solidity ", "").trim();
+            reply = contract ? await writeSolidity(env, uid, contract) : "⚠️ Опишите контракт!";
+            
+          } else if (text === "/debug" || text.startsWith("/debug ")) {
+            const code = text.replace("/debug ", "").trim();
+            reply = code ? await debugCode(env, uid, code) : "⚠️ Вставьте код!";
+            
+          } else if (text === "/explain" || text.startsWith("/explain ")) {
+            const concept = text.replace("/explain ", "").trim();
+            reply = concept ? await explainConcept(env, uid, concept) : "⚠️ Что объяснить?";
+            
+          } else if (text === "/refactor" || text.startsWith("/refactor ")) {
+            const code = text.replace("/refactor ", "").trim();
+            reply = code ? await refactorCode(env, uid, code) : "⚠️ Вставьте код!";
             
           } else if (text === "/news" || text.startsWith("/news ")) {
-            const category = text.replace("/news ", "").trim();
-            reply = await getNews(env, uid, category || "Главные");
+            const cat = text.replace("/news ", "").trim();
+            reply = await getNews(env, uid, cat || "Главные");
             
           } else if (text === "/analyze" || text.startsWith("/analyze ")) {
             const topic = text.replace("/analyze ", "").trim();
@@ -169,25 +207,33 @@ export default {
             const country = text.replace("/world ", "").trim();
             reply = await getWorldNews(env, uid, country);
             
-          } else if (text === "/ask" || text.startsWith("/ask ")) {
-            const question = text.replace("/ask ", "").trim();
-            reply = await universalAnswer(env, uid, question);
-            
-          } else if (text === "/code" || text.startsWith("/code ")) {
-            const task = text.replace("/code ", "").trim();
-            reply = await writeCode(env, uid, task);
-            
           } else if (text === "/business" || text.startsWith("/business ")) {
-            const question = text.replace("/business ", "").trim();
-            reply = await businessConsult(env, uid, question);
+            const q = text.replace("/business ", "").trim();
+            reply = q ? await businessConsult(env, uid, q) : "⚠️ Задайте вопрос!";
+            
+          } else if (text === "/plan" || text.startsWith("/plan ")) {
+            const idea = text.replace("/plan ", "").trim();
+            reply = idea ? await businessPlan(env, uid, idea) : "⚠️ Опишите идею!";
             
           } else if (text === "/legal" || text.startsWith("/legal ")) {
-            const question = text.replace("/legal ", "").trim();
-            reply = await legalConsult(env, uid, question);
+            const q = text.replace("/legal ", "").trim();
+            reply = q ? await legalConsult(env, uid, q) : "⚠️ Задайте вопрос!";
+            
+          } else if (text === "/doc" || text.startsWith("/doc ")) {
+            const type = text.replace("/doc ", "").trim();
+            reply = type ? await generateDocument(env, uid, type) : "⚠️ Укажите тип!";
             
           } else if (text === "/garden" || text.startsWith("/garden ")) {
-            const question = text.replace("/garden ", "").trim();
-            reply = await gardenConsult(env, uid, question);
+            const q = text.replace("/garden ", "").trim();
+            reply = q ? await gardenConsult(env, uid, q) : "⚠️ Задайте вопрос!";
+            
+          } else if (text === "/home" || text.startsWith("/home ")) {
+            const q = text.replace("/home ", "").trim();
+            reply = q ? await homeConsult(env, uid, q) : "⚠️ Задайте вопрос!";
+            
+          } else if (text === "/ask" || text.startsWith("/ask ")) {
+            const q = text.replace("/ask ", "").trim();
+            reply = q ? await universalAnswer(env, uid, q) : "⚠️ Задайте вопрос!";
             
           } else if (text === "/memory") {
             const conv = await getConversation(env, uid);
@@ -196,9 +242,7 @@ export default {
               conv.slice(-6).forEach(m => {
                 if (m.role === "user") reply += `❓ ${m.content.slice(0, 50)}...\n`;
               });
-            } else {
-              reply = "💭 Память пуста";
-            }
+            } else reply = "💭 Память пуста";
             
           } else if (text === "/post" && ADMIN_IDS.includes(uid)) {
             const topic = text.replace("/post ", "").trim();
@@ -232,315 +276,53 @@ export default {
     }
   },
   
-  // Автопостинг новостей (каждые 3 часа)
   async scheduled(event, env) {
     const hour = new Date().getUTCHours();
-    
-    // Утренний дайджест (6 UTC)
-    if (hour === 6) {
-      const digest = await getDailyDigest(env, "auto");
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, digest);
-      console.log("Morning digest posted");
-    }
-    
-    // Новости технологий (12 UTC)
-    if (hour === 12) {
-      const techNews = await getNews(env, "auto", "Технологии");
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, techNews);
-      console.log("Tech news posted");
-    }
-    
-    // Мировые новости (18 UTC)
-    if (hour === 18) {
-      const worldNews = await getWorldNews(env, "auto", "Мир");
-      await sendMsg(env.BOT_TOKEN, CHANNEL_ID, worldNews);
-      console.log("World news posted");
-    }
+    if (hour === 6) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getDailyDigest(env, "auto"));
+    if (hour === 12) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getNews(env, "auto", "Технологии"));
+    if (hour === 18) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getWorldNews(env, "auto", "Мир"));
   }
 };
 
-// === НОВОСТНЫЕ ФУНКЦИИ ===
-
-// Получение новостей
-async function getNews(env, userId, category) {
-  const systemMsg = `Ты новостной редактор.
-Создай обзор новостей по категории: ${category}.
-Формат:
-📰 ЗАГОЛОВОК
-
-🔹 Главная новость
-🔹 Важное событие
-🔹 Интересный факт
-
-📊 **Аналитика**:
-Краткий анализ трендов.
-
-#Новости #${category.replace(/\s/g, '')}
-
-Используй актуальные данные. Отвечай на русском.`;
-
-  const answer = await askAI(env, systemMsg, `Новости: ${category}`);
-  if (userId !== "auto") {
-    await saveConversation(env, userId, [
-      {role: "user", content: `News: ${category}`},
-      {role: "assistant", content: answer}
-    ]);
-  }
-  return answer;
-}
-
-// Аналитика темы
-async function analyzeTopic(env, userId, topic) {
-  const systemMsg = `Ты аналитик-эксперт.
-Сделай глубокий анализ темы: ${topic}.
-
-Структура:
-🔍 **АНАЛИТИЧЕСКИЙ ОБЗОР**
-
-📌 **Суть проблемы/темы**:
-...
-
-📊 **Факты и цифры**:
-...
-
-🌍 **Мировой контекст**:
-...
-
-💡 **Анализ**:
-- Причины
-- Следствия
-- Заинтересованные стороны
-
-📈 **Тренды**:
-...
-
-🔮 **Прогноз**:
-...
-
-#Аналитика #${topic.replace(/\s/g, '')}
-
-Будь объективен, приводи факты.`;
-
-  const answer = await askAI(env, systemMsg, `Анализ: ${topic}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `Analyze: ${topic}`},
-    {role: "assistant", content: answer}
-  ]);
-  return answer;
-}
-
-// Обзор события
-async function reviewEvent(env, userId, event) {
-  const systemMsg = `Ты журналист-аналитик.
-Сделай обзор события: ${event}.
-
-Формат:
-📋 **ОБЗОР СОБЫТИЯ**
-
-📍 **Что произошло**:
-...
-
-⏰ **Когда**:
-...
-
-👥 **Участники**:
-...
-
-🎯 **Причины**:
-...
-
-📊 **Последствия**:
-...
-
-🌍 **Реакция мира**:
-...
-
-💭 **Комментарий**:
-...
-
-#Обзор #События
-
-Будь объективен, покажи разные точки зрения.`;
-
-  const answer = await askAI(env, systemMsg, `Обзор: ${event}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `Review: ${event}`},
-    {role: "assistant", content: answer}
-  ]);
-  return answer;
-}
-
-// Прогноз
-async function forecastTopic(env, userId, topic) {
-  const systemMsg = `Ты футуролог-аналитик.
-Сделай прогноз по теме: ${topic}.
-
-Формат:
-🔮 **ПРОГНОЗ**
-
-📊 **Текущее состояние**:
-...
-
-📈 **Тренды**:
-- Краткосрочные (1 год)
-- Среднесрочные (3-5 лет)
-- Долгосрочные (10+ лет)
-
-⚠️ **Риски**:
-...
-
-💡 **Возможности**:
-...
-
-🎯 **Наиболее вероятный сценарий**:
-...
-
-#Прогноз #${topic.replace(/\s/g, '')}
-
-Будь реалистичен, основывайся на фактах.`;
-
-  const answer = await askAI(env, systemMsg, `Прогноз: ${topic}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `Forecast: ${topic}`},
-    {role: "assistant", content: answer}
-  ]);
-  return answer;
-}
-
-// Дайджест за день
-async function getDailyDigest(env, userId) {
-  const systemMsg = `Ты главный редактор.
-Создай ежедневный дайджест главных новостей.
-
-Формат:
-📰 **ДАЙДЖЕСТ ЗА ДЕНЬ**
-${new Date().toLocaleDateString('ru-RU')}
-
-🌍 **Мир**:
-• ...
-
-💻 **Технологии**:
-• ...
-
-📊 **Бизнес**:
-• ...
-
-⚽ **Спорт**:
-• ...
-
-🎬 **Культура**:
-• ...
-
-🔬 **Наука**:
-• ...
-
-📈 **Главный тренд дня**:
-...
-
-#Дайджест #Новости
-
-Только главное, без воды.`;
-
-  const answer = await askAI(env, systemMsg, "Ежедневный дайджест главных новостей мира");
-  if (userId !== "auto") {
-    await saveConversation(env, userId, [
-      {role: "user", content: "Digest"},
-      {role: "assistant", content: answer}
-    ]);
-  }
-  return answer;
-}
-
-// Новости мира по странам
-async function getWorldNews(env, userId, country) {
-  const systemMsg = `Ты международный обозреватель.
-Новости из страны: ${country}.
-
-Формат:
-🌍 **НОВОСТИ: ${country.toUpperCase()}**
-
-🏛️ **Политика**:
-...
-
-💰 **Экономика**:
-...
-
-👥 **Общество**:
-...
-
-🔬 **Наука и технологии**:
-...
-
-📊 **Важные цифры**:
-...
-
-🔍 **Анализ**:
-...
-
-#Мир #${country.replace(/\s/g, '')}
-
-Будь объективен.`;
-
-  const answer = await askAI(env, systemMsg, `Новости: ${country}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `World: ${country}`},
-    {role: "assistant", content: answer}
-  ]);
-  return answer;
-}
-
-// === ОБЩИЕ ФУНКЦИИ ===
-
-async function universalAnswer(env, userId, question) {
-  const ragContext = await ragRetrieve(env, question);
-  const webResults = await searchWeb(question);
+// === ПРОГРАММИРОВАНИЕ ===
+
+async function writeSolidity(env, userId, contractType) {
+  const prompts = {
+    "токен": "ERC20 токен с mint и burn",
+    "nft": "ERC721 NFT контракт с mint",
+    "стейкинг": "Стейкинг контракт с rewards",
+    "defi": "DeFi пул ликвидности",
+    "dao": "DAO с голосованием",
+    "multisig": "Multisig кошелёк"
+  };
   
-  let context = "";
-  if (ragContext) context += `📚 База:\n${ragContext}\n\n`;
-  if (webResults) context += `🌐 Интернет:\n${webResults}`;
+  const type = Object.keys(prompts).find(k => contractType.toLowerCase().includes(k)) || "токен";
+  const spec = prompts[type];
   
-  const systemMsg = `Ты универсальный AI-помощник Aiden. Отвечай на русском. Будь полезен.`;
-  const answer = await askAI(env, systemMsg, question + (context ? `\n\nКонтекст:\n${context}` : ""));
-  await saveConversation(env, userId, [
-    {role: "user", content: question},
-    {role: "assistant", content: answer}
-  ]);
-  return answer;
-}
+  const systemMsg = `Ты эксперт по Solidity и смарт-контрактам.
+Напиши профессиональный смарт-контракт.
+Включи:
+- SPDX license
+- Pragmas
+- Импорт OpenZeppelin
+- Контракт с функциями
+- События
+- Модификаторы
+- Безопасность (reentrancy guard и т.д.)
 
-async function businessConsult(env, userId, question) {
-  const systemMsg = `Ты бизнес-консультант. Давай практические советы.`;
-  const answer = await askAI(env, systemMsg, `Бизнес: ${question}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `Business: ${question}`},
-    {role: "assistant", content: answer}
-  ]);
-  return `📊 **Бизнес-консультация**:\n\n${answer}`;
-}
+Форматируй в markdown блоке \`\`\`solidity`;
 
-async function legalConsult(env, userId, question) {
-  const systemMsg = `Ты юрист. ⚠️ Добавь дисклеймер.`;
-  const answer = await askAI(env, systemMsg, `Юр: ${question}`);
+  const answer = await askAI(env, systemMsg, `Создай смарт-контракт: ${contractType}. ${spec}. Добавь комментарии на русском.`);
   await saveConversation(env, userId, [
-    {role: "user", content: `Legal: ${question}`},
+    {role: "user", content: `Solidity: ${contractType}`},
     {role: "assistant", content: answer}
   ]);
-  return `⚖️ **Информация**:\n\n${answer}\n\n⚠️ _Не является юр.консультацией._`;
-}
-
-async function gardenConsult(env, userId, question) {
-  const systemMsg = `Ты агроном. Давай советы по сезонам.`;
-  const answer = await askAI(env, systemMsg, `Сад: ${question}`);
-  await saveConversation(env, userId, [
-    {role: "user", content: `Garden: ${question}`},
-    {role: "assistant", content: answer}
-  ]);
-  return `🏡 **Совет**:\n\n${answer}`;
+  return `⛓️ **Смарт-контракт Solidity**:\n\n${answer}\n\n⚠️ _Протестируй перед деплоем!_`;
 }
 
 async function writeCode(env, userId, task) {
-  const systemMsg = `Ты программист. Пиши чистый код с комментариями.`;
-  const answer = await askAI(env, systemMsg, `Код: ${task}`);
+  const systemMsg = `Ты senior разработчик. Напиши чистый, рабочий код. Добавь комментарии на русском. Укажи как запустить.`;
+  const answer = await askAI(env, systemMsg, `Задача: ${task}`);
   await saveConversation(env, userId, [
     {role: "user", content: `Code: ${task}`},
     {role: "assistant", content: answer}
@@ -548,10 +330,147 @@ async function writeCode(env, userId, task) {
   return `💻 **Код**:\n\n${answer}`;
 }
 
+async function debugCode(env, userId, code) {
+  const systemMsg = `Ты эксперт по отладке. Найди ошибки, объясни, предложи исправление.`;
+  const answer = await askAI(env, systemMsg, `Найди ошибку:\n\`\`\`\n${code}\n\`\`\``);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Debug: ${code.slice(0, 200)}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `🔧 **Отладка**:\n\n${answer}`;
+}
+
+async function explainConcept(env, userId, concept) {
+  const systemMsg = `Ты учитель. Объясни просто, с примерами и аналогиями.`;
+  const answer = await askAI(env, systemMsg, `Объясни: ${concept}`);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Explain: ${concept}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `📚 **Объяснение**:\n\n${answer}`;
+}
+
+async function refactorCode(env, userId, code) {
+  const systemMsg = `Ты эксперт по рефакторингу. Улучши код: чище, быстрее, читаемее. Объясни изменения.`;
+  const answer = await askAI(env, systemMsg, `Улучши:\n\`\`\`\n${code}\n\`\`\``);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Refactor: ${code.slice(0, 200)}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `✨ **Рефакторинг**:\n\n${answer}`;
+}
+
+// === НОВОСТИ ===
+
+async function getNews(env, userId, category) {
+  const systemMsg = `Ты новостной редактор. Обзор новостей: ${category}. Формат: заголовок, 🔹 новости, 📊 аналитика, хэштеги.`;
+  const answer = await askAI(env, systemMsg, `Новости: ${category}`);
+  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: `News: ${category}`}, {role: "assistant", content: answer}]);
+  return answer;
+}
+
+async function analyzeTopic(env, userId, topic) {
+  const systemMsg = `Ты аналитик. Глубокий анализ: ${topic}. Структура: суть, факты, контекст, анализ, тренды, прогноз.`;
+  const answer = await askAI(env, systemMsg, `Анализ: ${topic}`);
+  await saveConversation(env, userId, [{role: "user", content: `Analyze: ${topic}`}, {role: "assistant", content: answer}]);
+  return `🔍 **АНАЛИТИКА**:\n\n${answer}`;
+}
+
+async function reviewEvent(env, userId, event) {
+  const systemMsg = `Ты журналист. Обзор: ${event}. Что, когда, кто, причины, последствия, реакция.`;
+  const answer = await askAI(env, systemMsg, `Обзор: ${event}`);
+  await saveConversation(env, userId, [{role: "user", content: `Review: ${event}`}, {role: "assistant", content: answer}]);
+  return `📋 **ОБЗОР**:\n\n${answer}`;
+}
+
+async function forecastTopic(env, userId, topic) {
+  const systemMsg = `Ты футуролог. Прогноз: ${topic}. Тренды, риски, возможности, сценарии.`;
+  const answer = await askAI(env, systemMsg, `Прогноз: ${topic}`);
+  await saveConversation(env, userId, [{role: "user", content: `Forecast: ${topic}`}, {role: "assistant", content: answer}]);
+  return `🔮 **ПРОГНОЗ**:\n\n${answer}`;
+}
+
+async function getDailyDigest(env, userId) {
+  const systemMsg = `Ты главред. Дайджест за ${new Date().toLocaleDateString('ru-RU')}. Мир, технологии, бизнес, спорт, наука. Только главное.`;
+  const answer = await askAI(env, systemMsg, "Дайджест");
+  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: "Digest"}, {role: "assistant", content: answer}]);
+  return answer;
+}
+
+async function getWorldNews(env, userId, country) {
+  const systemMsg = `Ты международный обозреватель. Новости: ${country}. Политика, экономика, общество, технологии.`;
+  const answer = await askAI(env, systemMsg, `Новости: ${country}`);
+  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: `World: ${country}`}, {role: "assistant", content: answer}]);
+  return answer;
+}
+
+// === БИЗНЕС ===
+
+async function businessConsult(env, userId, question) {
+  const systemMsg = `Ты бизнес-консультант. Давай практические советы.`;
+  const answer = await askAI(env, systemMsg, `Бизнес: ${question}`);
+  await saveConversation(env, userId, [{role: "user", content: `Business: ${question}`}, {role: "assistant", content: answer}]);
+  return `📊 **КОНСУЛЬТАЦИЯ**:\n\n${answer}`;
+}
+
+async function businessPlan(env, userId, idea) {
+  const systemMsg = `Ты бизнес-консультант. Структура: описание, рынок, конкуренция, финансы, риски.`;
+  const answer = await askAI(env, systemMsg, `Бизнес-идея: ${idea}`);
+  await saveConversation(env, userId, [{role: "user", content: `Plan: ${idea}`}, {role: "assistant", content: answer}]);
+  return `📋 **БИЗНЕС-ПЛАН**:\n\n${answer}`;
+}
+
+// === ЮРИСПРУДЕНЦИЯ ===
+
+async function legalConsult(env, userId, question) {
+  const systemMsg = `Ты юрист. ⚠️ Добавь дисклеймер.`;
+  const answer = await askAI(env, systemMsg, `Юр: ${question}`);
+  await saveConversation(env, userId, [{role: "user", content: `Legal: ${question}`}, {role: "assistant", content: answer}]);
+  return `⚖️ **ИНФОРМАЦИЯ**:\n\n${answer}\n\n⚠️ _Не является юр.консультацией._`;
+}
+
+async function generateDocument(env, userId, docType) {
+  const systemMsg = `Ты юрист. Шаблон по российскому праву. Добавь пояснения.`;
+  const answer = await askAI(env, systemMsg, `Шаблон: ${docType}`);
+  await saveConversation(env, userId, [{role: "user", content: `Document: ${docType}`}, {role: "assistant", content: answer}]);
+  return `📄 **ШАБЛОН**:\n\n${answer}`;
+}
+
+// === ДОМ И САД ===
+
+async function gardenConsult(env, userId, question) {
+  const systemMsg = `Ты агроном. Советы по сезонам для России/СНГ.`;
+  const answer = await askAI(env, systemMsg, `Сад: ${question}`);
+  await saveConversation(env, userId, [{role: "user", content: `Garden: ${question}`}, {role: "assistant", content: answer}]);
+  return `🏡 **СОВЕТ**:\n\n${answer}`;
+}
+
+async function homeConsult(env, userId, question) {
+  const systemMsg = `Ты мастер на все руки. Практические советы по дому.`;
+  const answer = await askAI(env, systemMsg, `Дом: ${question}`);
+  await saveConversation(env, userId, [{role: "user", content: `Home: ${question}`}, {role: "assistant", content: answer}]);
+  return `🏠 **СОВЕТ**:\n\n${answer}`;
+}
+
+// === ОБЩЕЕ ===
+
+async function universalAnswer(env, userId, question) {
+  const ragContext = await ragRetrieve(env, question);
+  const webResults = await searchWeb(question);
+  let context = "";
+  if (ragContext) context += `📚 База:\n${ragContext}\n\n`;
+  if (webResults) context += `🌐 Интернет:\n${webResults}`;
+  const systemMsg = `Ты Aiden, универсальный помощник. Отвечай на русском. Будь полезен.`;
+  const answer = await askAI(env, systemMsg, question + (context ? `\n\nКонтекст:\n${context}` : ""));
+  await saveConversation(env, userId, [{role: "user", content: question}, {role: "assistant", content: answer}]);
+  return answer;
+}
+
+// === УТИЛИТЫ ===
+
 async function searchWeb(query) {
   try {
-    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`;
-    const r = await fetch(url);
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json`);
     const d = await r.json();
     return d.AbstractText || "";
   } catch { return ""; }
@@ -601,11 +520,8 @@ async function askAI(env, system, user) {
       },
       body: JSON.stringify({
         model: "mistralai/mistral-7b-instruct:free",
-        messages: [
-          {role: "system", content: system},
-          {role: "user", content: user}
-        ],
-        max_tokens: 1200
+        messages: [{role: "system", content: system}, {role: "user", content: user}],
+        max_tokens: 1500
       })
     });
     if (!r.ok) throw new Error(`API ${r.status}`);
@@ -628,10 +544,7 @@ async function generatePost(env, topic) {
       },
       body: JSON.stringify({
         model: "qwen/qwen3-235b-a22b:free",
-        messages: [
-          {role:"system",content:"Пост для Telegram. Заголовок с эмодзи, текст, хэштеги."},
-          {role:"user",content:"Тема: "+topic}
-        ],
+        messages: [{role:"system",content:"Пост для Telegram. Заголовок с эмодзи, текст, хэштеги."}, {role:"user",content:"Тема: "+topic}],
         max_tokens: 1000
       })
     });
