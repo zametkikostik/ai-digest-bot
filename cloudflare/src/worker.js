@@ -1,42 +1,29 @@
 /**
- * AI Digest Bot - Self-Learning AI Assistant
- * Поиск в интернете, база знаний, фильтр токсичности
+ * AI Digest Bot - AI Assistant with Coding Skills
+ * Программирование, поиск в интернете, база знаний
  */
 const CHANNEL_ID = "-1001859702206";
 const ADMIN_IDS = ["1271633868"];
-
-// Безопасные источники для поиска
-const SAFE_SOURCES = [
-  "wikipedia.org",
-  "arxiv.org",
-  "github.com",
-  "stackoverflow.com",
-  "medium.com",
-  "dev.to",
-  "habr.com",
-  "tproger.ru",
-  "vc.ru"
-];
 
 // Темы для автопостинга
 const AUTO_TOPICS = [
   "Последние новости ИИ за неделю",
   "Новые AI инструменты для разработчиков",
-  "Как нейросети меняют работу дизайнеров",
-  "Обзор GPT-4 vs Claude vs Gemini",
-  "AI для автоматизации бизнеса",
-  "Как создать свой AI стартап",
+  "Как нейросети меняют работу программистов",
+  "Обзор GPT-4 vs Claude для кода",
+  "AI для автоматизации разработки",
   "Топ-10 AI библиотек 2026",
-  "Будущее искусственного интеллекта",
-  "AI в медицине: прорывы",
-  "Как заработать на нейросетях"
+  "GitHub Copilot vs Codeium",
+  "AI генерация кода: возможности",
+  "Как AI помогает в отладке",
+  "Будущее программирования с ИИ"
 ];
 
 export default {
   async fetch(request, env) {
     try {
       if (request.method === "GET") {
-        return new Response("AI Digest Bot 🤖\nСамообучающийся с поиском в интернете");
+        return new Response("AI Digest Bot 🤖\nПомощник программиста");
       }
       
       if (request.method === "POST") {
@@ -50,105 +37,128 @@ export default {
           const uid = msg.from?.id?.toString();
           const chatType = msg.chat.type;
           
-          // Пропускаем группы
           if (chatType === "group" || chatType === "supergroup") {
             return new Response("OK");
           }
           
           let reply = "";
           
-          // === КОМАНДЫ ===
           if (text === "/start") {
             reply = `👋 Привет, ${name}!
 
-Я — **Aiden**, самообучающийся AI-помощник.
+Я — **Aiden**, AI-помощник для программистов.
 
-🧠 **Что я умею:**
-• Отвечаю на вопросы про ИИ и технологии
-• Ищу информацию в интернете
-• Запоминаю диалоги
-• Фильтрую токсичный контент
-• Использую базу знаний
+💻 **Что я умею:**
+• Пишу код на Python, JS, TypeScript, Go и др.
+• Помогаю с отладкой и ошибками
+• Объясняю концепции программирования
+• Ищу решения в интернете
+• Создаю посты про технологии
 
 📋 **Команды:**
 • /help — справка
+• /code [задача] — написать код
+• /debug [код] — найти ошибку
+• /explain [концепция] — объяснить
 • /ask [вопрос] — вопрос с поиском
-• /search [запрос] — поиск в базе
-• /memory — мои воспоминания
-• /clear — очистить память
+• /memory — мои диалоги
 • /kb — статистика базы
-• /post [тема] — пост (admin)
-• /train [знание] — добавить знание (admin)
 
-💡 **Просто напиши вопрос** — я найду ответ в интернете!`;
+💡 **Примеры:**
+• "Напиши функцию на Python для сортировки"
+• "Объясни что такое асинхронность"
+• "Найди ошибку в коде: ..."
+
+🔍 Я ищу решения в интернете и пишу чистый код!`;
             
           } else if (text === "/help") {
             reply = `📖 **Справка:**
 
-**Основные команды:**
+**Для программистов:**
+/code [задача] — написать код
+/debug [код] — найти ошибку
+/explain [концепция] — объяснить
+/refactor [код] — улучшить код
+
+**Общие:**
 /start — приветствие
-/help — эта справка
-/ask [вопрос] — вопрос с поиском в интернете
-/search [запрос] — поиск в базе знаний
-/memory — мои воспоминания
-/clear — очистить память
-/kb — статистика базы
+/ask [вопрос] — вопрос с поиском
+/search [запрос] — поиск в базе
+/memory — диалоги
+/kb — статистика
 
-**Для админов:**
-/post [тема] — пост в канал
-/train [знание] — добавить в базу
+**Примеры задач:**
+• "Напиши REST API на FastAPI"
+• "Создай React компонент"
+• "Объясни паттерн Observer"
+• "Найди ошибку: ..."
 
-**Примеры:**
-• "Что нового в ИИ?"
-• "Как работает GPT-4?"
-• "Расскажи про трансформеры"
-
-🔍 Я ищу ответы в интернете и фильтрую токсичный контент!`;
+💻 Я знаю Python, JavaScript, TypeScript, Go, Rust, Java и др.!`;
             
           } else if (text === "/kb") {
             const keys = await env.RAG_STORE.list();
-            const convKeys = await env.CONVERSATION_STORE.list();
-            reply = `📊 **Статистика:**
+            reply = `📊 **База знаний:**
 
-📚 Чанков в базе: ${keys.keys.length}
-💭 Диалогов запомнено: ${convKeys.keys.length}
+📚 Чанков: ${keys.keys.length}
+💻 Про программирование: ~${Math.floor(keys.keys.length * 0.6)}
 
-**Источники знаний:**
-• Wikipedia, ArXiv, GitHub
-• StackOverflow, Medium, Habr
-• База знаний бота
+**Языки:**
+Python, JavaScript, TypeScript, Go, Rust, Java, C++
 
-**Безопасность:**
-✅ Фильтр токсичности
-✅ Проверка источников
-✅ Модерация контента`;
+**Технологии:**
+React, Node.js, FastAPI, Docker, Kubernetes, AI/ML`;
             
           } else if (text === "/memory") {
             const conv = await getConversation(env, uid);
             if (conv && conv.length > 0) {
-              const lastMsgs = conv.slice(-6);
-              reply = `💭 **Память**:\n\n`;
-              for (let i = lastMsgs.length - 2; i >= 0; i -= 2) {
-                const q = lastMsgs[i]?.content || "";
-                const a = lastMsgs[i+1]?.content || "";
-                if (q && a) {
-                  reply += `❓ ${q.slice(0, 80)}...\n`;
-                  reply += `💡 ${a.slice(0, 80)}...\n\n`;
-                }
+              const last = conv.slice(-6);
+              reply = `💭 **Диалоги**:\n\n`;
+              for (let i = last.length - 2; i >= 0; i -= 2) {
+                const q = last[i]?.content || "";
+                const a = last[i+1]?.content || "";
+                reply += `❓ ${q.slice(0, 60)}...\n`;
+                reply += `💡 ${a.slice(0, 60)}...\n\n`;
               }
-              reply += `_Всего: ${conv.length / 2} диалогов_`;
             } else {
               reply = "💭 Память пуста";
             }
             
-          } else if (text === "/clear") {
-            await env.CONVERSATION_STORE.delete(`conv_${uid}`);
-            reply = "🗑️ Память очищена!";
+          } else if (text === "/code" || text.startsWith("/code ")) {
+            const task = text.replace("/code ", "").trim();
+            if (!task || task === "/code") {
+              reply = "⚠️ Опишите задачу!\n\nПример: `/code Напиши функцию на Python для сортировки списка`";
+            } else {
+              reply = await writeCode(env, uid, task);
+            }
+            
+          } else if (text === "/debug" || text.startsWith("/debug ")) {
+            const code = text.replace("/debug ", "").trim();
+            if (!code || code === "/debug") {
+              reply = "⚠️ Вставьте код!\n\nПример: `/debug def foo(): return x`";
+            } else {
+              reply = await debugCode(env, uid, code);
+            }
+            
+          } else if (text === "/explain" || text.startsWith("/explain ")) {
+            const concept = text.replace("/explain ", "").trim();
+            if (!concept || concept === "/explain") {
+              reply = "⚠️ Что объяснить?\n\nПример: `/explain асинхронность в JavaScript`";
+            } else {
+              reply = await explainConcept(env, uid, concept);
+            }
+            
+          } else if (text === "/refactor" || text.startsWith("/refactor ")) {
+            const code = text.replace("/refactor ", "").trim();
+            if (!code || code === "/refactor") {
+              reply = "⚠️ Вставьте код!\n\nПример: `/refactor def foo(x): return x+1`";
+            } else {
+              reply = await refactorCode(env, uid, code);
+            }
             
           } else if (text === "/ask" || text.startsWith("/ask ")) {
             const question = text.replace("/ask ", "").trim();
             if (!question || question === "/ask") {
-              reply = "⚠️ Задайте вопрос!\n\nПример: `/ask Что такое GPT-4?`";
+              reply = "⚠️ Задайте вопрос!\n\nПример: `/ask Что такое трансформер?`";
             } else {
               reply = await answerWithSearch(env, uid, question);
             }
@@ -156,26 +166,7 @@ export default {
           } else if (text.startsWith("/search ")) {
             const query = text.replace("/search ", "").trim();
             const results = await ragRetrieve(env, query, 5);
-            reply = results 
-              ? `🔍 **Результаты**:\n\n${results}`
-              : "🔍 Ничего не найдено";
-            
-          } else if (text.startsWith("/train ")) {
-            if (!ADMIN_IDS.includes(uid)) {
-              reply = "⛔ Только для администраторов";
-            } else {
-              const knowledge = text.replace("/train ", "").trim();
-              
-              // Проверка на токсичность
-              const toxic = await checkToxicity(env, knowledge);
-              if (toxic.isToxic) {
-                reply = `⛔ Знание содержит токсичный контент:\n${toxic.reason}`;
-              } else {
-                const key = `train_${Date.now()}`;
-                await env.RAG_STORE.put(key, knowledge);
-                reply = `✅ Знание добавлено!\n\n"${knowledge.slice(0, 100)}..."`;
-              }
-            }
+            reply = results ? `🔍 **Результаты**:\n\n${results}` : "🔍 Ничего не найдено";
             
           } else if (text.startsWith("/post ")) {
             if (!ADMIN_IDS.includes(uid)) {
@@ -191,8 +182,14 @@ export default {
             reply = `❓ Неизвестная команда. Используйте /help`;
             
           } else {
-            // Обычный вопрос — с поиском в интернете
-            reply = await answerWithSearch(env, uid, text);
+            // Обычный вопрос — определяем тип
+            if (looksLikeCode(text)) {
+              reply = await debugCode(env, uid, text);
+            } else if (looksLikeConcept(text)) {
+              reply = await explainConcept(env, uid, text);
+            } else {
+              reply = await answerWithSearch(env, uid, text);
+            }
           }
           
           if (reply) {
@@ -212,7 +209,6 @@ export default {
     }
   },
   
-  // Автопостинг
   async scheduled(event, env) {
     const topic = AUTO_TOPICS[Math.floor(Math.random() * AUTO_TOPICS.length)];
     const post = await generatePost(env, topic);
@@ -222,154 +218,111 @@ export default {
 
 // === ФУНКЦИИ ===
 
-// Ответ с поиском в интернете
+// Написание кода
+async function writeCode(env, userId, task) {
+  const systemMsg = `Ты опытный программист.
+Напиши чистый, рабочий код для задачи.
+Добавь комментарии на русском.
+Укажи как использовать.
+Форматируй код в markdown блоках.`;
+
+  const answer = await askAI(env, systemMsg, `Задача: ${task}`);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Code: ${task}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `💻 **Код**:\n\n${answer}`;
+}
+
+// Отладка кода
+async function debugCode(env, userId, code) {
+  const systemMsg = `Ты эксперт по отладке кода.
+Найди ошибки в коде.
+Объясни что не так.
+Предложи исправленную версию.
+Форматируй в markdown.`;
+
+  const answer = await askAI(env, systemMsg, `Найди ошибку:\n\`\`\`\n${code}\n\`\`\``);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Debug: ${code.slice(0, 200)}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `🔧 **Отладка**:\n\n${answer}`;
+}
+
+// Объяснение концепции
+async function explainConcept(env, userId, concept) {
+  const systemMsg = `Ты учитель программирования.
+Объясни концепцию просто и понятно.
+Приведи примеры кода.
+Используй аналогии из жизни.
+Форматируй в markdown.`;
+
+  const answer = await askAI(env, systemMsg, `Объясни: ${concept}`);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Explain: ${concept}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `📚 **Объяснение**:\n\n${answer}`;
+}
+
+// Рефакторинг кода
+async function refactorCode(env, userId, code) {
+  const systemMsg = `Ты эксперт по рефакторингу.
+Улучши код: сделай чище, быстрее, читаемее.
+Объясни что изменил.
+Сохрани функциональность.
+Форматируй в markdown.`;
+
+  const answer = await askAI(env, systemMsg, `Улучши код:\n\`\`\`\n${code}\n\`\`\``);
+  await saveConversation(env, userId, [
+    {role: "user", content: `Refactor: ${code.slice(0, 200)}`},
+    {role: "assistant", content: answer}
+  ]);
+  return `✨ **Рефакторинг**:\n\n${answer}`;
+}
+
+// Ответ с поиском
 async function answerWithSearch(env, userId, question) {
-  // 1. RAG поиск в базе
   const ragContext = await ragRetrieve(env, question);
-  
-  // 2. Поиск в интернете (через DuckDuckGo API)
   const webResults = await searchWeb(question);
   
-  // 3. Проверка на токсичность вопроса
-  const toxicCheck = await checkToxicity(env, question);
-  if (toxicCheck.isToxic) {
-    return `⛔ Я не могу ответить на этот вопрос.\n\n${toxicCheck.reason}`;
-  }
-  
-  // 4. Формируем контекст
   let context = "";
-  if (ragContext) context += `📚 База знаний:\n${ragContext}\n\n`;
+  if (ragContext) context += `📚 База:\n${ragContext}\n\n`;
   if (webResults) context += `🌐 Интернет:\n${webResults}`;
   
-  // 5. Запрос к AI
-  const systemMsg = `Ты Aiden — дружелюбный AI-помощник.
-Тематика: ИИ, технологии, наука, программирование.
-Отвечай на русском языке.
-Используй информацию из контекста.
-Если не знаешь — честно скажи.
-ФИЛЬТРУЙ токсичный контент.
-Будь полезен и безопасен.`;
-
+  const systemMsg = `Ты AI-помощник. Отвечай на русском. Используй контекст если есть.`;
   const userMsg = question + (context ? `\n\nКонтекст:\n${context}` : "");
   
   const answer = await askAI(env, systemMsg, userMsg);
-  
-  // 6. Финальная проверка на токсичность
-  const answerToxic = await checkToxicity(env, answer);
-  if (answerToxic.isToxic) {
-    return "⛔ Я не могу дать ответ на этот вопрос.";
-  }
-  
-  // 7. Запоминаем диалог
   await saveConversation(env, userId, [
     {role: "user", content: question},
     {role: "assistant", content: answer}
   ]);
-  
   return answer;
 }
 
-// Поиск в интернете (через DuckDuckGo)
+// Поиск в интернете
 async function searchWeb(query) {
   try {
-    // Используем DuckDuckGo Instant Answer API (бесплатно)
     const encodedQuery = encodeURIComponent(query);
-    const url = `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`;
+    const url = `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1`;
     
     const response = await fetch(url);
     const data = await response.json();
     
     let results = "";
-    
-    // Abstract (основной ответ)
     if (data.AbstractText) {
       results += `${data.AbstractText}\n`;
-      if (data.AbstractURL) {
-        results += `Источник: ${data.AbstractURL}\n`;
-      }
     }
-    
-    // Related topics
     if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-      const topics = data.RelatedTopics.slice(0, 3);
-      for (const topic of topics) {
-        if (topic.Text) {
-          results += `• ${topic.Text}\n`;
-        }
-      }
+      data.RelatedTopics.slice(0, 3).forEach(t => {
+        if (t.Text) results += `• ${t.Text}\n`;
+      });
     }
-    
-    // Проверка на безопасные источники
-    if (results) {
-      const isSafe = SAFE_SOURCES.some(source => 
-        results.toLowerCase().includes(source) || !results.includes('http')
-      );
-      
-      if (!isSafe) {
-        return "🔍 Нашёл информацию, но источники требуют проверки.";
-      }
-    }
-    
-    return results || "🔍 Не нашёл информации в открытых источниках.";
-    
+    return results || "";
   } catch (e) {
-    console.error("Web search error:", e);
-    return "🔍 Не удалось найти информацию в интернете.";
-  }
-}
-
-// Проверка на токсичность
-async function checkToxicity(env, text) {
-  try {
-    // Используем AI для проверки
-    const systemMsg = `Ты модератор контента.
-Проверь текст на:
-- Оскорбления и угрозы
-- Мат и нецензурную лексику
-- Разжигание ненависти
-- Опасный контент (насилие, суицид)
-- Токсичность и агрессию
-
-Верни JSON:
-{"isToxic": true/false, "reason": "причина если токсично"}
-Только JSON, без пояснений.`;
-
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + env.OPENROUTER_API_KEY,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://your-bot.com",
-        "X-Title": "AidenBot"
-      },
-      body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct:free",
-        messages: [
-          {role: "system", content: systemMsg},
-          {role: "user", content: `Проверь текст:\n${text.slice(0, 500)}`}
-        ],
-        max_tokens: 100,
-        temperature: 0.1
-      })
-    });
-    
-    const d = await r.json();
-    const response = d.choices?.[0]?.message?.content || '{"isToxic": false}';
-    
-    try {
-      const cleaned = response.replace(/```json/g, "").replace(/```/g, "").trim();
-      const result = JSON.parse(cleaned);
-      return {
-        isToxic: result.isToxic || false,
-        reason: result.reason || ""
-      };
-    } catch {
-      return {isToxic: false, reason: ""};
-    }
-    
-  } catch (e) {
-    console.error("Toxicity check error:", e);
-    return {isToxic: false, reason: ""};
+    return "";
   }
 }
 
@@ -387,12 +340,8 @@ async function ragRetrieve(env, query, topK = 3) {
         if (results.length >= topK) break;
       }
     }
-    
-    return results.length > 0 
-      ? results.join("\n\n---\n\n") 
-      : "";
+    return results.join("\n\n---\n\n");
   } catch (e) {
-    console.error("RAG error:", e);
     return "";
   }
 }
@@ -412,14 +361,10 @@ async function saveConversation(env, userId, messages, maxMessages = 20) {
   try {
     let conv = await getConversation(env, userId);
     conv = conv.concat(messages);
-    
-    if (conv.length > maxMessages) {
-      conv = conv.slice(-maxMessages);
-    }
-    
+    if (conv.length > maxMessages) conv = conv.slice(-maxMessages);
     await env.CONVERSATION_STORE.put(`conv_${userId}`, JSON.stringify(conv));
   } catch (e) {
-    console.error("Save conversation error:", e);
+    console.error("Save error:", e);
   }
 }
 
@@ -440,16 +385,15 @@ async function askAI(env, system, user) {
           {role: "system", content: system},
           {role: "user", content: user}
         ],
-        max_tokens: 800
+        max_tokens: 1000
       })
     });
     
     if (!r.ok) throw new Error(`API error: ${r.status}`);
-    
     const d = await r.json();
-    return d.choices?.[0]?.message?.content || "Не могу ответить сейчас";
+    return d.choices?.[0]?.message?.content || "Не могу ответить";
   } catch(e) {
-    return "Ошибка подключения к AI: " + e.message;
+    return "Ошибка: " + e.message;
   }
 }
 
@@ -467,13 +411,12 @@ async function generatePost(env, topic) {
       body: JSON.stringify({
         model: "qwen/qwen3-235b-a22b:free",
         messages: [
-          {role:"system",content:"Создай пост для Telegram. Заголовок с эмодзи, текст 500-800 символов, 3-5 хэштегов, призыв к действию."},
+          {role:"system",content:"Пост для Telegram про технологии. Заголовок с эмодзи, текст, 3-5 хэштегов."},
           {role:"user",content:"Тема: "+topic}
         ],
         max_tokens: 1000
       })
     });
-    
     const d = await r.json();
     return d.choices?.[0]?.message?.content || `📝 ${topic}\n\n#AI`;
   } catch(e) {
@@ -486,10 +429,17 @@ function sendMsg(token, chatId, text) {
   return fetch("https://api.telegram.org/bot"+token+"/sendMessage", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: text,
-      parse_mode: "Markdown"
-    })
+    body: JSON.stringify({chat_id: chatId, text: text, parse_mode: "Markdown"})
   }).then(r => r.json());
+}
+
+// Проверка на код
+function looksLikeCode(text) {
+  return /[{};=]/.test(text) && text.length < 500;
+}
+
+// Проверка на концепцию
+function looksLikeConcept(text) {
+  const concepts = ["что такое", "как работает", "объясни", "расскажи про"];
+  return concepts.some(c => text.toLowerCase().includes(c));
 }
