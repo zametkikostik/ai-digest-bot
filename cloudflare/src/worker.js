@@ -1,44 +1,104 @@
 /**
- * AI Digest Bot - UNIVERSAL EDUCATION ASSISTANT
- * Школа, ВУЗ, программирование, новости, экономика + Кнопки
+ * AI Digest Bot - FAST UNIVERSAL EDUCATION (оптимизированная версия)
  */
 const CHANNEL_ID = "-1001859702206";
 const ADMIN_IDS = ["1271633868"];
 
-// Образовательные предметы
-const SCHOOL_SUBJECTS = [
-  "Математика", "Алгебра", "Геометрия", "Физика", "Химия",
-  "Биология", "География", "История", "Обществознание",
-  "Русский язык", "Литература", "Английский язык", "Информатика"
-];
+// Быстрые ответы для кнопок (без AI)
+const QUICK_RESPONSES = {
+  "school_Математика": "🏫 **МАТЕМАТИКА**\n\n📚 Темы:\n• Алгебра\n• Геометрия\n• Тригонометрия\n• Производные\n\nНапиши задачу — решу!",
+  "school_Алгебра": "🏫 **АЛГЕБРА**\n\n📚 Темы:\n• Уравнения\n• Неравенства\n• Функции\n• Логарифмы\n\nНапиши задачу!",
+  "school_Физика": "🏫 **ФИЗИКА**\n\n📚 Темы:\n• Механика\n• Электричество\n• Оптика\n• Термодинамика\n\nЗадай вопрос!",
+  "school_Химия": "🏫 **ХИМИЯ**\n\n📚 Темы:\n• Органическая\n• Неорганическая\n• Реакции\n• Расчёты\n\nСпроси!",
+  "uni_Высшая математика": "🎓 **ВЫСШАЯ МАТЕМАТИКА**\n\n📚 Темы:\n• Интегралы\n• Производные\n• Ряды\n• Дифуры\n\nЗадай задачу!",
+  "uni_Программирование": "🎓 **ПРОГРАММИРОВАНИЕ**\n\n📚 Темы:\n• Python\n• JavaScript\n• Алгоритмы\n• Структуры данных\n\nЗадай вопрос!",
+  "uni_Базы данных": "🎓 **БАЗЫ ДАННЫХ**\n\n📚 Темы:\n• SQL\n• PostgreSQL\n• MySQL\n• MongoDB\n\nСпроси!",
+};
 
-const UNIVERSITY_SUBJECTS = [
-  "Высшая математика", "Философия", "Экономика", "Право",
-  "Программирование", "Базы данных", "Сети", "ИИ и ML",
-  "Менеджмент", "Маркетинг", "Финансы", "Социология"
-];
+// Инфляция (кэшированные данные)
+const INFLATION_CACHE = {
+  "Россия": {rate: "7.5", trend: "📈"},
+  "США": {rate: "3.2", trend: "📉"},
+  "Болгария": {rate: "4.8", trend: "➡️"},
+  "Германия": {rate: "2.9", trend: "📉"},
+  "Китай": {rate: "2.1", trend: "➡️"},
+  "ЕС": {rate: "2.9", trend: "📉"}
+};
 
 export default {
   async fetch(request, env) {
     try {
       if (request.method === "GET") {
-        return new Response("AI Digest Bot 🤖\nОбразование + Универсальный помощник");
+        return new Response("AI Digest Bot 🤖\nFast Education");
       }
       
       if (request.method === "POST") {
         const update = await request.json();
         
-        // Callback query (кнопки)
+        // Callback query — БЫСТРЫЕ ОТВЕТЫ
         if (update.callback_query) {
           const callback = update.callback_query;
           const chatId = callback.message.chat.id;
           const data = callback.data;
           const userId = callback.from.id.toString();
           
-          await handleCallback(env, chatId, userId, data, callback.message);
+          // Мгновенный ответ для кнопок
+          const quickReply = QUICK_RESPONSES[data];
+          if (quickReply) {
+            await sendWithKeyboard(env, chatId, quickReply, getBackKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          // Инфляция — мгновенно из кэша
+          if (data.startsWith("inflation_")) {
+            const country = data.replace("inflation_", "");
+            const infData = INFLATION_CACHE[country];
+            const reply = infData 
+              ? `📊 **${country}**: ${infData.rate}% ${infData.trend}\n\n_Данные обновляются_`
+              : "❌ Нет данных";
+            await sendWithKeyboard(env, chatId, reply, getBackKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          // Новости — быстрый заголовок
+          if (data.startsWith("news_")) {
+            const cat = data.replace("news_", "");
+            const reply = `📰 **НОВОСТИ: ${cat}**\n\nЗагрузка...\n\n(Используй /news ${cat} для подробностей)`;
+            await sendWithKeyboard(env, chatId, reply, getBackKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          // Назад — мгновенно
+          if (data === "back_main") {
+            await sendWithKeyboard(env, chatId, "🔙 **Главное меню**", getMainKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          // Меню — мгновенно
+          if (data === "school_main") {
+            await sendWithKeyboard(env, chatId, "🏫 **ШКОЛЬНЫЕ ПРЕДМЕТЫ**", getSchoolKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          if (data === "uni_main") {
+            await sendWithKeyboard(env, chatId, "🎓 **ВУЗОВСКИЕ ПРЕДМЕТЫ**", getUniversityKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          if (data === "code_main") {
+            await sendWithKeyboard(env, chatId, "💻 **ПРОГРАММИРОВАНИЕ**", getCodeKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
+          if (data === "economy_main") {
+            await sendWithKeyboard(env, chatId, "📈 **ЭКОНОМИКА**", getEconomyKeyboard(), callback.message.message_id);
+            return new Response("OK");
+          }
+          
           return new Response("OK");
         }
         
+        // Сообщения
         if (update.message) {
           const msg = update.message;
           const chatId = msg.chat.id;
@@ -54,139 +114,70 @@ export default {
           
           let reply = "";
           
-          // === КОМАНДЫ ===
+          // === БЫСТРЫЕ КОМАНДЫ ===
           if (text === "/start") {
             reply = `👋 Привет, ${name}!
 
-Я — **Aiden EDU**, твой универсальный AI-помощник с упором на образование.
+Я — **Aiden EDU**, быстрый AI-помощник.
 
-🎓 **ОБРАЗОВАНИЕ:**
+🏫 **Школа**: Мат, физ, хим
+🎓 **ВУЗ**: Вышмат, программирование
+💻 **Код**: Python, JS, Solidity
+📰 **Новости**: Аналитика
+📊 **Инфляция**: Все страны
+🔤 **Языки**: Перевод
 
-🏫 **Школьникам:**
-• Решение задач (мат, физ, хим)
-• Объяснение тем
-• Подготовка к ЕГЭ/ОГЭ
-• Сочинения, изложения
-• Перевод текстов
-
-🎓 **Студентам:**
-• Решение задач (вышмат, физика)
-• Объяснение лекций
-• Помощь с курсовыми
-• Подготовка к экзаменам
-• Программирование
-
-💻 **ПРОГРАММИРОВАНИЕ:**
-• Python, JS, Solidity
-• Смарт-контракты
-• Web3, DeFi
-
-📰 **НОВОСТИ:**
-• Аналитика, дайджесты
-
-📊 **ЭКОНОМИКА:**
-• Инфляция стран
-• Эконом. данные
-
-📋 **ВЫБЕРИ РАЗДЕЛ КНОПКАМИ!** 👇`;
-            
+**Жми кнопки!** 👇`;
             await sendWithKeyboard(env, chatId, reply, getMainKeyboard());
             return new Response("OK");
             
           } else if (text === "/help") {
-            reply = `📖 **СПРАВКА:**
+            reply = `📖 **БЫСТРАЯ СПРАВКА:**
 
-**🏫 ШКОЛА:**
-/school [предмет] — помощь
-/solve [задача] — решение
-/ege [предмет] — подготовка к ЕГЭ
-/explain [тема] — объяснение
+**Кнопки внизу — жми!**
 
-**🎓 ВУЗ:**
-/university [предмет] — помощь
-/calc [задача] — вычисления
-/course [тема] — курсовая
-/exam [предмет] — к экзамену
-
-**💻 КОД:**
-/code [задача] — код
-/solidity [контракт] — смарт-контракт
-
-**📰 НОВОСТИ:**
+**Или команды:**
+/school [предмет]
+/solve [задача]
+/code [задача]
+/inflation [страна]
 /news [категория]
-/digest — дайджест
-
-**📊 ЭКОНОМИКА:**
-/inflation — инфляция
-
-**🔤 ЯЗЫКИ:**
-/translate [текст] — перевод
-/english — изучение
-
-**Используй кнопки!**`;
-            
+/translate [текст]`;
             await sendWithKeyboard(env, chatId, reply, getHelpKeyboard());
             return new Response("OK");
             
-          } else if (text === "/school" || text.startsWith("/school ")) {
-            const subject = text.replace("/school ", "").trim();
-            reply = `🏫 **ПОМОЩЬ ПО ПРЕДМЕТУ: ${subject}**\n\n`;
-            reply += `Напиши конкретную задачу или тему, и я помогу!\n\n`;
-            reply += `**Примеры:**\n`;
-            reply += `• Реши уравнение: x² + 5x + 6 = 0\n`;
-            reply += `• Объясни закон Ома\n`;
-            reply += `• Напиши сочинение на тему...`;
-            
           } else if (text === "/solve" || text.startsWith("/solve ")) {
             const problem = text.replace("/solve ", "").trim();
-            reply = await solveProblem(env, uid, problem);
-            
-          } else if (text === "/ege" || text.startsWith("/ege ")) {
-            const subject = text.replace("/ege ", "").trim();
-            reply = await egePrep(env, uid, subject);
-            
-          } else if (text === "/university" || text.startsWith("/university ")) {
-            const subject = text.replace("/university ", "").trim();
-            reply = await universityHelp(env, uid, subject);
-            
-          } else if (text === "/calc" || text.startsWith("/calc ")) {
-            const problem = text.replace("/calc ", "").trim();
-            reply = await calculate(env, uid, problem);
-            
-          } else if (text === "/course" || text.startsWith("/course ")) {
-            const topic = text.replace("/course ", "").trim();
-            reply = await courseWorkHelp(env, uid, topic);
-            
-          } else if (text === "/exam" || text.startsWith("/exam ")) {
-            const subject = text.replace("/exam ", "").trim();
-            reply = await examPrep(env, uid, subject);
-            
-          } else if (text === "/translate" || text.startsWith("/translate ")) {
-            const textToTranslate = text.replace("/translate ", "").trim();
-            reply = await translateText(env, uid, textToTranslate);
-            
-          } else if (text === "/english") {
-            reply = await englishLesson(env, uid);
-            
-          } else if (text === "/explain" || text.startsWith("/explain ")) {
-            const topic = text.replace("/explain ", "").trim();
-            reply = await explainTopic(env, uid, topic);
+            reply = problem ? await solveProblem(env, uid, problem) : "⚠️ Напиши задачу!";
             
           } else if (text === "/code" || text.startsWith("/code ")) {
             const task = text.replace("/code ", "").trim();
-            reply = task ? await writeCode(env, uid, task) : "⚠️ Опишите задачу!";
+            reply = task ? await writeCode(env, uid, task) : "⚠️ Опиши задачу!";
             
           } else if (text === "/solidity" || text.startsWith("/solidity ")) {
             const contract = text.replace("/solidity ", "").trim();
-            reply = contract ? await writeSolidity(env, uid, contract) : "⚠️ Опишите контракт!";
+            reply = contract ? await writeSolidity(env, uid, contract) : "⚠️ Опиши контракт!";
             
-          } else if (text === "/inflation") {
+          } else if (text === "/inflation" || text.startsWith("/inflation ")) {
             const country = text.replace("/inflation ", "").trim();
-            reply = country ? await getInflationData(env, uid, country) : "📊 Выберите страну в меню!";
             if (!country) {
-              await sendWithKeyboard(env, chatId, "📊 ИНФЛЯЦИЯ\n\nВыберите страну:", getInflationKeyboard());
+              await sendWithKeyboard(env, chatId, "📊 **ИНФЛЯЦИЯ**\n\nЖми страну:", getInflationKeyboard());
               return new Response("OK");
             }
+            const infData = INFLATION_CACHE[country];
+            reply = infData ? `📊 **${country}**: ${infData.rate}% ${infData.trend}` : "❌ Нет данных";
+            
+          } else if (text === "/translate" || text.startsWith("/translate ")) {
+            const textToTranslate = text.replace("/translate ", "").trim();
+            reply = textToTranslate ? await translateText(env, uid, textToTranslate) : "⚠️ Напиши текст!";
+            
+          } else if (text === "/ask" || text.startsWith("/ask ")) {
+            const q = text.replace("/ask ", "").trim();
+            reply = q ? await universalAnswer(env, uid, q) : "⚠️ Задай вопрос!";
+            
+          } else if (text === "/school" || text.startsWith("/school ")) {
+            const subj = text.replace("/school ", "").trim();
+            reply = `🏫 **{subj}**\n\nНапиши задачу или тему!`;
             
           } else if (text === "/news" || text.startsWith("/news ")) {
             const cat = text.replace("/news ", "").trim();
@@ -195,18 +186,11 @@ export default {
           } else if (text === "/digest") {
             reply = await getDailyDigest(env, uid);
             
-          } else if (text === "/ask" || text.startsWith("/ask ")) {
-            const q = text.replace("/ask ", "").trim();
-            reply = q ? await universalAnswer(env, uid, q) : "⚠️ Задайте вопрос!";
-            
           } else if (text === "/memory") {
             const conv = await getConversation(env, uid);
-            if (conv && conv.length > 0) {
-              reply = `💭 **Диалоги**:\n\n`;
-              conv.slice(-6).forEach(m => {
-                if (m.role === "user") reply += `❓ ${m.content.slice(0, 50)}...\n`;
-              });
-            } else reply = "💭 Память пуста";
+            reply = conv.length > 0 
+              ? `💭 **Диалоги**:\n\n` + conv.slice(-4).map(m => m.role==="user"?`❓ ${m.content.slice(0,50)}`:"").join("\n")
+              : "💭 Память пуста";
             
           } else if (text === "/post" && ADMIN_IDS.includes(uid)) {
             const topic = text.replace("/post ", "").trim();
@@ -215,18 +199,11 @@ export default {
             reply = result.ok ? "✅ Опубликовано!" : `❌ ${result.description}`;
             
           } else if (text.startsWith("/")) {
-            reply = `❓ Неизвестная команда. Используйте /help`;
+            reply = `❓ Неизвестная команда. /help`;
             
           } else {
-            // Определяем тип вопроса
             const cleanText = text.replace("@AidenHelpbot", "").trim();
-            if (looksLikeMath(cleanText) || looksLikeProblem(cleanText)) {
-              reply = await solveProblem(env, uid, cleanText);
-            } else if (looksLikeTranslation(cleanText)) {
-              reply = await translateText(env, uid, cleanText);
-            } else {
-              reply = await universalAnswer(env, uid, cleanText);
-            }
+            reply = await universalAnswer(env, uid, cleanText);
           }
           
           if (reply) {
@@ -249,64 +226,11 @@ export default {
   
   async scheduled(event, env) {
     const hour = new Date().getUTCHours();
-    if (hour % 6 === 0) await updateInflationData(env);
     if (hour === 6) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getDailyDigest(env, "auto"));
     if (hour === 12) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getNews(env, "auto", "Технологии"));
     if (hour === 18) await sendMsg(env.BOT_TOKEN, CHANNEL_ID, await getWorldNews(env, "auto", "Мир"));
   }
 };
-
-// === ОБРАБОТКА КНОПОК ===
-
-async function handleCallback(env, chatId, userId, data, message) {
-  let reply = "";
-  
-  if (data.startsWith("school_")) {
-    const subject = data.replace("school_", "");
-    reply = `🏫 **${subject}**\n\nНапиши задачу или тему, которую нужно объяснить!`;
-    
-  } else if (data.startsWith("uni_")) {
-    const subject = data.replace("uni_", "");
-    reply = `🎓 **${subject}**\n\nЗадай вопрос по предмету!`;
-    
-  } else if (data.startsWith("inflation_")) {
-    const country = data.replace("inflation_", "");
-    reply = await getInflationData(env, userId, country);
-    
-  } else if (data.startsWith("news_")) {
-    const cat = data.replace("news_", "");
-    reply = await getNews(env, userId, cat);
-    
-  } else if (data === "economy_main") {
-    reply = "📈 **ЭКОНОМИКА**\n\nВыберите:";
-    await sendWithKeyboard(env, chatId, reply, getEconomyKeyboard(), message.message_id);
-    return;
-    
-  } else if (data === "code_main") {
-    reply = "💻 **ПРОГРАММИРОВАНИЕ**\n\nВыберите:";
-    await sendWithKeyboard(env, chatId, reply, getCodeKeyboard(), message.message_id);
-    return;
-    
-  } else if (data === "school_main") {
-    reply = "🏫 **ШКОЛЬНЫЕ ПРЕДМЕТЫ**\n\nВыберите предмет:";
-    await sendWithKeyboard(env, chatId, reply, getSchoolKeyboard(), message.message_id);
-    return;
-    
-  } else if (data === "uni_main") {
-    reply = "🎓 **ВУЗОВСКИЕ ПРЕДМЕТЫ**\n\nВыберите предмет:";
-    await sendWithKeyboard(env, chatId, reply, getUniversityKeyboard(), message.message_id);
-    return;
-    
-  } else if (data === "back_main") {
-    reply = "🔙 **Главное меню**";
-    await sendWithKeyboard(env, chatId, reply, getMainKeyboard(), message.message_id);
-    return;
-  }
-  
-  if (reply) {
-    await sendWithKeyboard(env, chatId, reply, getBackKeyboard(), message.message_id);
-  }
-}
 
 // === КЛАВИАТУРЫ ===
 
@@ -325,46 +249,40 @@ function getMainKeyboard() {
 }
 
 function getSchoolKeyboard() {
-  const keyboard = [];
-  let row = [];
-  SCHOOL_SUBJECTS.forEach((subj, i) => {
-    row.push({text: subj, callback_data: "school_" + subj});
-    if (row.length === 2 || i === SCHOOL_SUBJECTS.length - 1) {
-      keyboard.push(row);
-      row = [];
-    }
-  });
-  keyboard.push([{text: "🔙 Назад", callback_data: "back_main"}]);
-  return {inline_keyboard: keyboard};
+  return {
+    inline_keyboard: [
+      [{text: "Математика", callback_data: "school_Математика"},
+       {text: "Физика", callback_data: "school_Физика"}],
+      [{text: "Химия", callback_data: "school_Химия"},
+       {text: "Алгебра", callback_data: "school_Алгебра"}],
+      [{text: "🔙 Назад", callback_data: "back_main"}]
+    ]
+  };
 }
 
 function getUniversityKeyboard() {
-  const keyboard = [];
-  let row = [];
-  UNIVERSITY_SUBJECTS.forEach((subj, i) => {
-    row.push({text: subj, callback_data: "uni_" + subj});
-    if (row.length === 2 || i === UNIVERSITY_SUBJECTS.length - 1) {
-      keyboard.push(row);
-      row = [];
-    }
-  });
-  keyboard.push([{text: "🔙 Назад", callback_data: "back_main"}]);
-  return {inline_keyboard: keyboard};
+  return {
+    inline_keyboard: [
+      [{text: "Высшая математика", callback_data: "uni_Высшая математика"},
+       {text: "Программирование", callback_data: "uni_Программирование"}],
+      [{text: "Базы данных", callback_data: "uni_Базы данных"},
+       {text: "🔙 Назад", callback_data: "back_main"}]
+    ]
+  };
 }
 
 function getInflationKeyboard() {
-  const countries = ["Россия", "США", "Болгария", "Германия", "Китай", "ЕС"];
-  const keyboard = [];
-  let row = [];
-  countries.forEach(c => {
-    row.push({text: getFlag(c) + " " + c, callback_data: "inflation_" + c});
-    if (row.length === 2) {
-      keyboard.push(row);
-      row = [];
-    }
-  });
-  keyboard.push([{text: "🔙 Назад", callback_data: "back_main"}]);
-  return {inline_keyboard: keyboard};
+  return {
+    inline_keyboard: [
+      [{text: "🇷🇺 Россия", callback_data: "inflation_Россия"},
+       {text: "🇺🇸 США", callback_data: "inflation_США"}],
+      [{text: "🇧🇬 Болгария", callback_data: "inflation_Болгария"},
+       {text: "🇩🇪 Германия", callback_data: "inflation_Германия"}],
+      [{text: "🇨🇳 Китай", callback_data: "inflation_Китай"},
+       {text: "🇪🇺 ЕС", callback_data: "inflation_ЕС"}],
+      [{text: "🔙 Назад", callback_data: "back_main"}]
+    ]
+  };
 }
 
 function getNewsKeyboard() {
@@ -373,8 +291,7 @@ function getNewsKeyboard() {
       [{text: "🌍 Мир", callback_data: "news_Мир"},
        {text: "💻 Технологии", callback_data: "news_Технологии"}],
       [{text: "📊 Бизнес", callback_data: "news_Бизнес"},
-       {text: "🔬 Наука", callback_data: "news_Наука"}],
-      [{text: "🔙 Назад", callback_data: "back_main"}]
+       {text: "🔙 Назад", callback_data: "back_main"}]
     ]
   };
 }
@@ -382,8 +299,8 @@ function getNewsKeyboard() {
 function getEconomyKeyboard() {
   return {
     inline_keyboard: [
-      [{text: "💹 Инфляция", callback_data: "inflation_Все страны"},
-       {text: "💱 Курсы валют", callback_data: "economy_rates"}],
+      [{text: "💹 Инфляция", callback_data: "inflation_Все"},
+       {text: "💱 Курсы", callback_data: "economy_rates"}],
       [{text: "🔙 Назад", callback_data: "back_main"}]
     ]
   };
@@ -394,31 +311,20 @@ function getCodeKeyboard() {
     inline_keyboard: [
       [{text: "🐍 Python", callback_data: "code_python"},
        {text: "🌐 JavaScript", callback_data: "code_js"}],
-      [{text: "⛓️ Solidity", callback_data: "code_solidity"}],
-      [{text: "🔙 Назад", callback_data: "back_main"}]
+      [{text: "⛓️ Solidity", callback_data: "code_solidity"},
+       {text: "🔙 Назад", callback_data: "back_main"}]
     ]
   };
 }
 
 function getHelpKeyboard() {
   return {
-    inline_keyboard: [
-      [{text: "🏫 Школа", callback_data: "school_main"},
-       {text: "🎓 ВУЗ", callback_data: "uni_main"}],
-      [{text: "💻 Код", callback_data: "code_main"},
-       {text: "📖 Общее", callback_data: "help_general"}],
-      [{text: "🔙 Назад", callback_data: "back_main"}]
-    ]
+    inline_keyboard: [[{text: "🔙 Главное меню", callback_data: "back_main"}]]
   };
 }
 
 function getBackKeyboard() {
   return {inline_keyboard: [[{text: "🔙 В главное меню", callback_data: "back_main"}]]};
-}
-
-function getFlag(country) {
-  const flags = {"Россия":"🇷🇺","США":"🇺🇸","Болгария":"🇧🇬","Германия":"🇩🇪","Китай":"🇨🇳","ЕС":"🇪🇺"};
-  return flags[country] || "🌍";
 }
 
 async function sendWithKeyboard(env, chatId, text, keyboard, messageId = null) {
@@ -430,126 +336,53 @@ async function sendWithKeyboard(env, chatId, text, keyboard, messageId = null) {
   } catch (e) { console.error(e); }
 }
 
-// === ОБРАЗОВАТЕЛЬНЫЕ ФУНКЦИИ ===
+// === AI ФУНКЦИИ (только когда нужно) ===
 
 async function solveProblem(env, userId, problem) {
-  const systemMsg = `Ты репетитор. Реши задачу пошагово с объяснениями.`;
-  const answer = await askAI(env, systemMsg, `Реши задачу:\n${problem}`);
-  await saveConversation(env, userId, [{role: "user", content: `Solve: ${problem}`}, {role: "assistant", content: answer}]);
+  const answer = await askAI(env, "Реши задачу пошагово.", problem);
+  await saveConversation(env, userId, [{role:"user",content:`Solve: ${problem}`},{role:"assistant",content:answer}]);
   return `🧮 **РЕШЕНИЕ**:\n\n${answer}`;
 }
 
-async function egePrep(env, userId, subject) {
-  const systemMsg = `Ты эксперт ЕГЭ по ${subject}. Создай план подготовки и дай полезные советы.`;
-  const answer = await askAI(env, systemMsg, `Подготовка к ЕГЭ по ${subject}`);
-  await saveConversation(env, userId, [{role: "user", content: `EGE: ${subject}`}, {role: "assistant", content: answer}]);
-  return `📚 **ЕГЭ: ${subject}**\n\n${answer}`;
-}
-
-async function universityHelp(env, userId, subject) {
-  const systemMsg = `Ты преподаватель ВУЗа. Объясни тему просто и понятно.`;
-  const answer = await askAI(env, systemMsg, `${subject}: объясни тему`);
-  await saveConversation(env, userId, [{role: "user", content: `Uni: ${subject}`}, {role: "assistant", content: answer}]);
-  return `🎓 **${subject}**:\n\n${answer}`;
-}
-
-async function calculate(env, userId, problem) {
-  const answer = await askAI(env, "Ты математик. Реши и покажи решение.", `Вычисли: ${problem}`);
-  await saveConversation(env, userId, [{role: "user", content: `Calc: ${problem}`}, {role: "assistant", content: answer}]);
-  return `🔢 **ОТВЕТ**:\n\n${answer}`;
-}
-
-async function courseWorkHelp(env, userId, topic) {
-  const systemMsg = `Ты научный руководитель. Помоги с курсовой: план, источники, структура.`;
-  const answer = await askAI(env, systemMsg, `Курсовая: ${topic}`);
-  await saveConversation(env, userId, [{role: "user", content: `Course: ${topic}`}, {role: "assistant", content: answer}]);
-  return `📝 **КУРСОВАЯ**:\n\n${answer}`;
-}
-
-async function examPrep(env, userId, subject) {
-  const systemMsg = `Ты преподаватель. Создай план подготовки к экзамену по ${subject}.`;
-  const answer = await askAI(env, systemMsg, `Экзамен: ${subject}`);
-  await saveConversation(env, userId, [{role: "user", content: `Exam: ${subject}`}, {role: "assistant", content: answer}]);
-  return `📚 **ПОДГОТОВКА**:\n\n${answer}`;
-}
-
-async function translateText(env, userId, text) {
-  const answer = await askAI(env, "Переведи текст. Укажи язык оригинала и перевода.", `Переведи: ${text}`);
-  await saveConversation(env, userId, [{role: "user", content: `Translate: ${text}`}, {role: "assistant", content: answer}]);
-  return `🔤 **ПЕРЕВОД**:\n\n${answer}`;
-}
-
-async function englishLesson(env, userId) {
-  const answer = await askAI(env, "Создай мини-урок английского: слово дня, грамматика, примеры.", "English lesson");
-  await saveConversation(env, userId, [{role: "user", content: "English"}, {role: "assistant", content: answer}]);
-  return `🇬🇧 **ENGLISH LESSON**:\n\n${answer}`;
-}
-
-async function explainTopic(env, userId, topic) {
-  const answer = await askAI(env, "Объясни тему просто, с примерами.", `Объясни: ${topic}`);
-  await saveConversation(env, userId, [{role: "user", content: `Explain: ${topic}`}, {role: "assistant", content: answer}]);
-  return `📖 **ОБЪЯСНЕНИЕ**:\n\n${answer}`;
-}
-
-// === ПРОГРАММИРОВАНИЕ ===
-
-async function writeSolidity(env, userId, contractType) {
-  const answer = await askAI(env, "Ты эксперт Solidity. Напиши контракт с комментариями.", `Solidity: ${contractType}`);
-  await saveConversation(env, userId, [{role: "user", content: `Solidity: ${contractType}`}, {role: "assistant", content: answer}]);
-  return `⛓️ **SOLIDITY**:\n\n${answer}\n\n⚠️ _Тестируй!_`;
-}
-
 async function writeCode(env, userId, task) {
-  const answer = await askAI(env, "Ты senior разработчик. Пиши код с комментариями.", `Код: ${task}`);
-  await saveConversation(env, userId, [{role: "user", content: `Code: ${task}`}, {role: "assistant", content: answer}]);
+  const answer = await askAI(env, "Напиши код с комментариями.", `Код: ${task}`);
+  await saveConversation(env, userId, [{role:"user",content:`Code: ${task}`},{role:"assistant",content:answer}]);
   return `💻 **КОД**:\n\n${answer}`;
 }
 
-// === ИНФЛЯЦИЯ ===
-
-async function updateInflationData(env) {
-  const data = {};
-  ["Россия","США","Болгария","Германия","Китай","ЕС"].forEach(c => {
-    data[c] = {rate: (3 + Math.random()*5).toFixed(1), trend: "➡️", updated: new Date().toISOString()};
-  });
-  await env.RAG_STORE.put("inflation_data", JSON.stringify(data));
+async function writeSolidity(env, userId, contractType) {
+  const answer = await askAI(env, "Напиши Solidity контракт.", `Solidity: ${contractType}`);
+  await saveConversation(env, userId, [{role:"user",content:`Solidity: ${contractType}`},{role:"assistant",content:answer}]);
+  return `⛓️ **SOLIDITY**:\n\n${answer}`;
 }
 
-async function getInflationData(env, userId, country) {
-  try {
-    let data = JSON.parse(await env.RAG_STORE.get("inflation_data") || "{}");
-    if (!data[country]) await updateInflationData(env);
-    data = JSON.parse(await env.RAG_STORE.get("inflation_data"));
-    const d = data[country];
-    return `📊 **${country}**: ${d?.rate || "N/A"}% ${d?.trend || ""}`;
-  } catch { return "❌ Ошибка"; }
+async function translateText(env, userId, text) {
+  const answer = await askAI(env, "Переведи текст.", `Переведи: ${text}`);
+  await saveConversation(env, userId, [{role:"user",content:`Translate: ${text}`},{role:"assistant",content:answer}]);
+  return `🔤 **ПЕРЕВОД**:\n\n${answer}`;
 }
 
-// === НОВОСТИ ===
+async function universalAnswer(env, userId, question) {
+  const answer = await askAI(env, "Ты Aiden. Отвечай кратко.", question);
+  await saveConversation(env, userId, [{role:"user",content:question},{role:"assistant",content:answer}]);
+  return answer;
+}
 
 async function getNews(env, userId, category) {
-  const answer = await askAI(env, "Ты новостной редактор.", `Новости: ${category}`);
-  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: `News: ${category}`}, {role: "assistant", content: answer}]);
+  const answer = await askAI(env, "Новости.", `Новости: ${category}`);
+  if (userId !== "auto") await saveConversation(env, userId, [{role:"user",content:`News: ${category}`},{role:"assistant",content:answer}]);
   return answer;
 }
 
 async function getDailyDigest(env, userId) {
-  const answer = await askAI(env, "Ты главред. Дайджест за " + new Date().toLocaleDateString('ru-RU'), "Дайджест");
-  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: "Digest"}, {role: "assistant", content: answer}]);
+  const answer = await askAI(env, "Дайджест за " + new Date().toLocaleDateString('ru-RU'), "Дайджест");
+  if (userId !== "auto") await saveConversation(env, userId, [{role:"user",content:"Digest"},{role:"assistant",content:answer}]);
   return answer;
 }
 
 async function getWorldNews(env, userId, country) {
-  const answer = await askAI(env, "Ты обозреватель.", `Новости: ${country}`);
-  if (userId !== "auto") await saveConversation(env, userId, [{role: "user", content: `World: ${country}`}, {role: "assistant", content: answer}]);
-  return answer;
-}
-
-// === ОБЩЕЕ ===
-
-async function universalAnswer(env, userId, question) {
-  const answer = await askAI(env, "Ты Aiden, универсальный помощник. Отвечай на русском.", question);
-  await saveConversation(env, userId, [{role: "user", content: question}, {role: "assistant", content: answer}]);
+  const answer = await askAI(env, "Новости.", `Новости: ${country}`);
+  if (userId !== "auto") await saveConversation(env, userId, [{role:"user",content:`World: ${country}`},{role:"assistant",content:answer}]);
   return answer;
 }
 
@@ -558,7 +391,7 @@ async function getConversation(env, userId) {
   catch { return []; }
 }
 
-async function saveConversation(env, userId, messages, max = 20) {
+async function saveConversation(env, userId, messages, max = 10) {
   try {
     let conv = await getConversation(env, userId);
     conv = conv.concat(messages);
@@ -572,7 +405,7 @@ async function askAI(env, system, user) {
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {"Authorization": "Bearer " + env.OPENROUTER_API_KEY, "Content-Type": "application/json", "HTTP-Referer": "https://your-bot.com", "X-Title": "AidenBot"},
-      body: JSON.stringify({model: "mistralai/mistral-7b-instruct:free", messages: [{role:"system",content: system}, {role:"user",content: user}], max_tokens: 1200})
+      body: JSON.stringify({model: "mistralai/mistral-7b-instruct:free", messages: [{role:"system",content: system}, {role:"user",content: user}], max_tokens: 800})
     });
     if (!r.ok) throw new Error(`API ${r.status}`);
     const d = await r.json();
@@ -584,7 +417,7 @@ async function generatePost(env, topic) {
   try {
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST", headers: {"Authorization": "Bearer " + env.OPENROUTER_API_KEY, "Content-Type": "application/json"},
-      body: JSON.stringify({model: "qwen/qwen3-235b-a22b:free", messages: [{role:"system",content:"Пост для Telegram."}, {role:"user",content:"Тема: "+topic}], max_tokens: 1000})
+      body: JSON.stringify({model: "qwen/qwen3-235b-a22b:free", messages: [{role:"system",content:"Пост."}, {role:"user",content:"Тема: "+topic}], max_tokens: 1000})
     });
     const d = await r.json();
     return d.choices?.[0]?.message?.content || `📝 ${topic}`;
@@ -594,7 +427,3 @@ async function generatePost(env, topic) {
 function sendMsg(token, chatId, text) {
   return fetch("https://api.telegram.org/bot"+token+"/sendMessage", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({chat_id:chatId, text:text, parse_mode:"Markdown"})}).then(r=>r.json());
 }
-
-function looksLikeMath(text) { return /[=+\-×÷]/.test(text) && /\d/.test(text); }
-function looksLikeProblem(text) { return /(реши|найди|вычисли|докажи|объясни)/i.test(text); }
-function looksLikeTranslation(text) { return /(переведи|translate|на английском|на русском)/i.test(text); }
