@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Allow: /README.md
+Allow: /package.json
+Sitemap: https://raw.githubusercontent.com/zametkikostik/ai-digest-bot/main/sitemap.xml

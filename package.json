@@ -1,0 +1,9 @@
+{
+  "name": "ai-digest-bot",
+  "version": "2.0.0",
+  "description": "Aiden PRO — Universal AI Assistant for Telegram. Education, Investments, Weather, 10 Languages.",
+  "repository": "https://github.com/zametkikostik/ai-digest-bot",
+  "author": "@zametkikostik",
+  "license": "MIT",
+  "keywords": ["telegram", "bot", "ai", "education", "investment", "weather", "multilingual"]
+}
