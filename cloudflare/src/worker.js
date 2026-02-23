@@ -111,10 +111,17 @@ export default {
         const chatId = cb.message.chat.id;
         const msgId = cb.message.message_id;
         const userId = cb.from.id.toString();
-        
+
+        // Быстрая реакция на нажатие (answerCallbackQuery)
+        await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({callback_query_id: cb.id})
+        });
+
         let reply = "";
         let kb = null;
-        
+
         // КЭШ - МГНОВЕННО
         if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); }
         else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); }
@@ -479,13 +486,27 @@ async function ai(env, text) {
 }
 
 async function sendKB(env, chatId, text, kb, msgId) {
-  try { await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: chatId, text: text, reply_markup: JSON.stringify(kb), reply_to_message_id: msgId})}); }
+  try {
+    // Показываем "печатает..." перед отправкой
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendChatAction`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({chat_id: chatId, action: "typing"})
+    });
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: chatId, text: text, reply_markup: JSON.stringify(kb), reply_to_message_id: msgId})});
+  }
   catch(e) {}
 }
 
 // Отправка фото с текстом
 async function sendPhoto(env, chatId, photoUrl, caption, kb) {
   try {
+    // Показываем "печатает..." перед отправкой
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendChatAction`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({chat_id: chatId, action: "typing"})
+    });
     await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
