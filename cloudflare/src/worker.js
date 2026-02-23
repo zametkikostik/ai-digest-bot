@@ -517,9 +517,21 @@ async function sendKB(env, chatId, text, kb, msgId) {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({chat_id: chatId, action: "typing"})
     });
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: chatId, text: text, reply_markup: JSON.stringify(kb), reply_to_message_id: msgId})});
+    // Используем editMessageText для редактирования сообщения с кнопкой
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: msgId,
+        text: text,
+        reply_markup: JSON.stringify(kb)
+      })
+    });
   }
-  catch(e) {}
+  catch(e) {
+    console.error("sendKB error:", e);
+  }
 }
 
 // Отправка фото с текстом
