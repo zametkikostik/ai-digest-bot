@@ -225,6 +225,38 @@ export default {
           const name = msg.from?.first_name || "User";
           const uid = msg.from?.id?.toString();
           const chatType = msg.chat.type;
+
+          // ДОБАВЛЕНИЕ В БАЗУ ЗНАНИЙ (только для админов)
+          if (text.startsWith("/add ") && ADMIN_IDS.includes(uid)) {
+            const content = text.replace("/add ", "");
+            const key = `knowledge_${Date.now()}`;
+            await env.RAG_STORE.put(key, content);
+            await sendMsg(env.BOT_TOKEN, chatId, `✅ Добавлено в базу знаний!\n\nКлюч: ${key}`);
+            return new Response("OK");
+          }
+
+          // RAG ПОИСК
+          if (text.startsWith("/search ") || text.startsWith("/rag ")) {
+            const query = text.replace("/search ", "").replace("/rag ", "");
+            const results = await ragSearch(env, query);
+            await sendMsg(env.BOT_TOKEN, chatId, results);
+            return new Response("OK");
+          }
+
+          // Список знаний (админ)
+          if (text === "/knowledge" && ADMIN_IDS.includes(uid)) {
+            const keys = await listKnowledge(env);
+            await sendMsg(env.BOT_TOKEN, chatId, `📚 База знаний:\n\n${keys.join("\n") || "Пусто"}`);
+            return new Response("OK");
+          }
+
+          // Удаление знания (админ)
+          if (text.startsWith("/del ") && ADMIN_IDS.includes(uid)) {
+            const key = text.replace("/del ", "");
+            await env.RAG_STORE.delete(key);
+            await sendMsg(env.BOT_TOKEN, chatId, `🗑️ Удалено: ${key}`);
+            return new Response("OK");
+          }
         
           // MODERATION
           if ((chatType === "group" || chatType === "supergroup") && !text.startsWith("/") && !text.includes("@AidenHelpbot")) {
@@ -277,7 +309,7 @@ export default {
         }
         
         if (text === "/help") {
-          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/garden — сад и огород\n/search [запрос] — RAG поиск\n/stats — статистика (admin)";
+          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/garden — сад и огород\n/search [запрос] — RAG поиск\n/add [текст] — добавить в базу (admin)\n/knowledge — список знаний (admin)\n/del [ключ] — удалить знание (admin)\n/stats — статистика (admin)";
           await sendKB(env, chatId, reply, helpKB());
           return new Response("OK");
         }
@@ -398,21 +430,15 @@ export default {
 
 // === FUNCTIONS ===
 
-// RAG SEARCH - Workers AI + KV
-async function ragSearch(env, query, userId) {
+// RAG SEARCH - поиск по базе знаний
+async function ragSearch(env, query) {
   try {
-    // 1. Генерируем эмбеддинг запроса через Workers AI
-    const embedding = await env.ai.run("@cf/baai/bge-small-en-v1.5", {
-      text: [query]
-    });
-    const queryVector = embedding.data[0];
-    
-    // 2. Ищем похожие чанки в KV (упрощённый поиск по ключам)
+    // Получаем все ключи с префиксом knowledge_
     const allKeys = [];
     let cursor = null;
     do {
       const result = await env.RAG_STORE.list({ 
-        prefix: "chunk_", 
+        prefix: "knowledge_", 
         cursor,
         limit: 100 
       });
@@ -420,32 +446,52 @@ async function ragSearch(env, query, userId) {
       cursor = result.cursor;
     } while (cursor);
     
-    // 3. Для демо - возвращаем последние сохранённые чанки
-    // В продакшене нужен Vectorize для cosine similarity
-    let results = [];
-    for (let i = 0; i < Math.min(allKeys.length, 5); i++) {
-      const chunk = await env.RAG_STORE.get(allKeys[i].name);
-      if (chunk) results.push(chunk);
+    if (allKeys.length === 0) {
+      return "📚 База знаний пуста.\n\nИспользуйте /add [текст] для добавления.";
+    }
+    
+    // Ищем совпадения по ключевым словам
+    const queryLower = query.toLowerCase();
+    const results = [];
+    
+    for (const keyInfo of allKeys) {
+      const content = await env.RAG_STORE.get(keyInfo.name);
+      if (content && content.toLowerCase().includes(queryLower)) {
+        results.push(`📄 ${keyInfo.name}:\n${content.substring(0, 200)}...`);
+      }
     }
     
     if (results.length === 0) {
-      // Если ничего нет - используем AI для ответа
+      // Если точных совпадений нет - используем AI
       const aiAnswer = await ai(env, `Ответь на вопрос: ${query}. Будь краток (до 300 символов).`);
-      return `🔍 RAG поиск:\n\n${aiAnswer}\n\n💡 Добавь документы через /upload`;
+      return `🔍 Поиск:\n\n${aiAnswer}\n\n💡 Добавьте информацию через /add`;
     }
     
-    // 4. Формируем ответ
-    let answer = `🔍 Найдено: ${results.length}\n\n`;
-    answer += results.slice(0, 3).join("\n\n---\n\n");
-    
-    // 5. Добавляем AI-саммари
-    const summary = await ai(env, `Сделай краткое резюме (до 200 символов) на основе:\n${results.join("\n")}\n\nВопрос: ${query}`);
-    answer += `\n\n💡 **ИИ отвечает:**\n${summary}`;
-    
-    return answer;
+    return `🔍 Найдено: ${results.length}\n\n` + results.slice(0, 5).join("\n\n---\n\n");
   } catch (e) {
-    console.error("RAG error:", e);
-    return "❌ Ошибка RAG поиска. Попробуйте позже.";
+    console.error("RAG search error:", e);
+    return "❌ Ошибка поиска. Попробуйте позже.";
+  }
+}
+
+// Список знаний
+async function listKnowledge(env) {
+  try {
+    const allKeys = [];
+    let cursor = null;
+    do {
+      const result = await env.RAG_STORE.list({ 
+        prefix: "knowledge_", 
+        cursor,
+        limit: 100 
+      });
+      allKeys.push(...result.keys.map(k => k.name));
+      cursor = result.cursor;
+    } while (cursor);
+    return allKeys;
+  } catch (e) {
+    console.error("listKnowledge error:", e);
+    return [];
   }
 }
 
