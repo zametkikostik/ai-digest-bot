@@ -39,7 +39,26 @@ const QUICK = {
 
 const SCHOOL = ["Математика","Русский язык","Литература","Физика","Химия","Биология","География","История","Обществознание","Информатика","Английский","Немецкий","ОБЖ"];
 const UNI = ["Высшая математика","Физика","Химия","Программирование","Базы данных","Сети","Экономика","Менеджмент","Право","Философия","Психология"];
-const GARDEN = ["🍅 Томаты","🥒 Огурцы","🫑 Перец","🥕 Морковь","🥔 Картофель","🥬 Капуста","🧅 Лук","🧄 Чеснок","🍓 Клубника","🍎 Яблоня","🫐 Смородина","🍇 Малина","🌸 Цветы","🌿 Газон","🧪 Удобрения","🐛 Вредители","🦠 Болезни","📅 Календарь"];
+const GARDEN = [
+  {name: "🍅 Томаты", id: "Томаты"},
+  {name: "🥒 Огурцы", id: "Огурцы"},
+  {name: "🫑 Перец", id: "Перец"},
+  {name: "🥕 Морковь", id: "Морковь"},
+  {name: "🥔 Картофель", id: "Картофель"},
+  {name: "🥬 Капуста", id: "Капуста"},
+  {name: "🧅 Лук", id: "Лук"},
+  {name: "🧄 Чеснок", id: "Чеснок"},
+  {name: "🍓 Клубника", id: "Клубника"},
+  {name: "🍎 Яблоня", id: "Яблоня"},
+  {name: "🫐 Смородина", id: "Смородина"},
+  {name: "🍇 Малина", id: "Малина"},
+  {name: "🌸 Цветы", id: "Цветы"},
+  {name: "🌿 Газон", id: "Газон"},
+  {name: "🧪 Удобрения", id: "Удобрения"},
+  {name: "🐛 Вредители", id: "Вредители"},
+  {name: "🦠 Болезни", id: "Болезни"},
+  {name: "📅 Календарь", id: "Календарь"}
+];
 const REFERRAL_REWARD = 50;
 
 const PAID_FEATURES = {
@@ -540,7 +559,19 @@ async function delMsg(token, chatId, msgId) {
 function mainKB() { return {inline_keyboard: [[{text:"🏫 Школа",callback_data:"school_main"},{text:"🎓 ВУЗ",callback_data:"uni_main"}],[{text:"🌿 Сад",callback_data:"garden_main"},{text:"🎓 AI",callback_data:"tutor_main"}],[{text:"💎 PREMIUM",callback_data:"paid_main"},{text:"👥 Рефералы",callback_data:"referral_main"}],[{text:"📢 Подписаться",callback_data:"subscribe_main"}],[{text:"💰 Инвест",callback_data:"invest_main"},{text:"₿ Крипта",callback_data:"crypto_main"}],[{text:"📊 Бизнес",callback_data:"business_main"}],[{text:"🌤️ Погода",callback_data:"weather_main"},{text:"📊 Инфляция",callback_data:"inflation_main"}]]}; }
 function schoolKB() { const kb=[]; let row=[]; for(let i=0;i<SCHOOL.length;i++){row.push({text:SCHOOL[i],callback_data:"school_"+SCHOOL[i]});if(row.length===2||i===SCHOOL.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
 function uniKB() { const kb=[]; let row=[]; for(let i=0;i<UNI.length;i++){row.push({text:UNI[i],callback_data:"uni_"+UNI[i]});if(row.length===2||i===UNI.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
-function gardenKB() { const kb=[]; let row=[]; for(let i=0;i<GARDEN.length;i++){row.push({text:GARDEN[i],callback_data:"garden_"+GARDEN[i].replace(/^[^ ]+ /,"")});if(row.length===2||i===GARDEN.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
+function gardenKB() {
+  const kb = [];
+  let row = [];
+  for (let i = 0; i < GARDEN.length; i++) {
+    row.push({text: GARDEN[i].name, callback_data: "garden_" + GARDEN[i].id});
+    if (row.length === 2 || i === GARDEN.length - 1) {
+      kb.push(row);
+      row = [];
+    }
+  }
+  kb.push([{text: "🔙 Назад", callback_data: "back_main"}]);
+  return {inline_keyboard: kb};
+}
 function gardenBackKB() { return {inline_keyboard: [[{text:"🌿 Все культуры",callback_data:"garden_main"}],[{text:"🔙 В меню",callback_data:"back_main"}]]}; }
 function tutorKB() { return {inline_keyboard: [[{text:"💰 Купить",callback_data:"pay_tutor"}],[{text:"🔙 Назад",callback_data:"back_main"}]]}; }
 function paidKB() { return {inline_keyboard: [[{text:"🎓 AI — 99⭐",callback_data:"pay_tutor"}],[{text:"📝 ДЗ — 29⭐",callback_data:"pay_homework"}],[{text:"📚 Экзамен — 149⭐",callback_data:"pay_exam"}],[{text:"✍️ Соч — 49⭐",callback_data:"pay_essay"}],[{text:"⭐ PREMIUM — 299⭐",callback_data:"pay_premium"}],[{text:"🔙 Назад",callback_data:"back_main"}]]}; }
