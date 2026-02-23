@@ -101,7 +101,20 @@ const POST_TOPICS = [
 
 export default {
   async fetch(request, env, ctx) {
-    if (request.method === "GET") return new Response("Bot OK");
+    if (request.method === "GET") {
+      // Тестовый endpoint
+      const url = new URL(request.url);
+      if (url.searchParams.get("test") === "send") {
+        const chatId = url.searchParams.get("chat") || "1271633868";
+        const resp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({chat_id: chatId, text: "✅ TEST OK from Cloudflare Worker!"})
+        });
+        return new Response(`Test sent to ${chatId}, status: ${resp.status}`);
+      }
+      return new Response("Bot OK");
+    }
 
     if (request.method === "POST") {
       try {
