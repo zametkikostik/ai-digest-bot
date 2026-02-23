@@ -130,82 +130,18 @@ export default {
           const cb = update.callback_query;
           const data = cb.data;
           const chatId = cb.message.chat.id;
-          const msgId = cb.message.message_id;
-          const userId = cb.from.id.toString();
-
-          console.log("Callback:", data);
-
-          // Обработка кнопок
-          let reply = "";
-          let kb = null;
-          let sendPhotoUrl = null;
-
-          if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); }
-          else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); }
-          else if (data === "school_main") { reply = "🏫 ШКОЛА"; kb = schoolKB(); }
-          else if (data === "uni_main") { reply = "🎓 ВУЗ"; kb = uniKB(); }
-          else if (data === "garden_main") { reply = "🌿 САД И ОГОРОД"; kb = gardenKB(); }
-          else if (data === "tutor_main") {
-            const has = await checkTutor(env, userId);
-            reply = has ? "✅ Активно!" : "💰 7 дней бесплатно!";
-            kb = tutorKB();
-          }
-          else if (data === "paid_main") { reply = "💎 PREMIUM"; kb = paidKB(); }
-          else if (data === "referral_main") {
-            const ref = await getRefData(env, userId);
-            reply = `👥 ${ref.referrals.length}`;
-            kb = backKB();
-          }
-          else if (data === "subscribe_main") { reply = "📢 Подпишись"; kb = subKB(); }
-          else if (data === "invest_main") { reply = "💰 Инвест"; kb = investKB(); }
-          else if (data === "crypto_main") { reply = "₿ Крипта"; kb = cryptoKB(); }
-          else if (data === "business_main") { reply = "📊 Бизнес"; kb = businessKB(); }
-          else if (data === "weather_main") { reply = "🌤️ Погода"; kb = weatherKB(); }
-          else if (data === "inflation_main") { reply = "📊 Инфляция"; kb = inflationKB(); }
-          else if (data.startsWith("school_")) { reply = `🏫 ${data}`; kb = backKB(); }
-          else if (data.startsWith("uni_")) { reply = `🎓 ${data}`; kb = backKB(); }
-          else if (data.startsWith("garden_")) {
-            const fullReply = QUICK[data];
-            if (fullReply) {
-              const photoMatch = fullReply.match(/📸 (https?:\/\/\S+)/);
-              sendPhotoUrl = photoMatch ? photoMatch[1] : null;
-              kb = gardenBackKB();
-            }
-          }
-          else if (data.startsWith("pay_")) {
-            const f = PAID_FEATURES[data.replace("pay_","")];
-            reply = `💎 ${f.name} — ${f.price}⭐`;
-            kb = buyKB(data.replace("pay_",""));
-          }
-          else { reply = "Меню"; kb = mainKB(); }
-
-          // Создаем промис для отправки
-          const sendPromise = (async () => {
-            // answerCallbackQuery
-            await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({callback_query_id: cb.id})
-            });
-            
-            // Сообщение
-            if (sendPhotoUrl) {
-              await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({chat_id: chatId, photo: sendPhotoUrl, caption: reply, reply_markup: JSON.stringify(kb)})
-              });
-            } else if (reply) {
-              await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({chat_id: chatId, text: reply, reply_markup: JSON.stringify(kb)})
-              });
-            }
-          })();
           
-          // Ждем отправки перед возвратом
-          await sendPromise;
+          console.log("Callback:", data, "chat:", chatId);
+
+          // Простой ответ
+          const reply = "Вы нажали: " + data;
+          
+          // Отправляем сообщение
+          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({chat_id: chatId, text: reply})
+          });
           
           return new Response("OK");
         }
