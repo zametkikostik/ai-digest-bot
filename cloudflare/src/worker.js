@@ -179,27 +179,33 @@ export default {
           }
           else { reply = "Меню"; kb = mainKB(); }
 
-          // answerCallbackQuery БЕЗ await - fire and forget
-          fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({callback_query_id: cb.id})
-          }).catch(e => console.error("answerCallbackQuery error:", e));
+          // Создаем промис для отправки
+          const sendPromise = (async () => {
+            // answerCallbackQuery
+            await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({callback_query_id: cb.id})
+            });
+            
+            // Сообщение
+            if (sendPhotoUrl) {
+              await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({chat_id: chatId, photo: sendPhotoUrl, caption: reply, reply_markup: JSON.stringify(kb)})
+              });
+            } else if (reply) {
+              await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({chat_id: chatId, text: reply, reply_markup: JSON.stringify(kb)})
+              });
+            }
+          })();
           
-          // Сообщение БЕЗ await - fire and forget
-          if (sendPhotoUrl) {
-            fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({chat_id: chatId, photo: sendPhotoUrl, caption: reply, reply_markup: JSON.stringify(kb)})
-            }).catch(e => console.error("sendPhoto error:", e));
-          } else if (reply) {
-            fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({chat_id: chatId, text: reply, reply_markup: JSON.stringify(kb)})
-            }).catch(e => console.error("sendMessage error:", e));
-          }
+          // Ждем отправки перед возвратом
+          await sendPromise;
           
           return new Response("OK");
         }
