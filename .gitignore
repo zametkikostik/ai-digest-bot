@@ -16,26 +16,54 @@ build/
 .vscode/
 *.swp
 *.swo
+*.sublime-*
 
-# Environment
+# Environment - CRITICAL: Never commit secrets!
 .env
 .env.local
+.env.production
+.env.*.local
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 chroma_db/
+data/
 
 # Logs
 *.log
 logs/
+bot.log
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Cloudflare
 cloudflare/node_modules/
 cloudflare/.wrangler/
 cloudflare/.dev.vars
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Test coverage
+coverage/
+.coverage
+htmlcov/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
