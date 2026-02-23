@@ -23,7 +23,7 @@ id = "d7fe61b4e39b4607af339e57cee0bca1"
 binding = "CONVERSATION_STORE"
 id = "f3adf57a2e77412e8bb8dd38bb6394e4"
 
-[[ai]]
+[ai]
 binding = "AI"
 
 [triggers]
