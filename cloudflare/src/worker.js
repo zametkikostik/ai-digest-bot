@@ -14,11 +14,32 @@ const QUICK = {
   "business_Стартап": "📊 СТАРТАП\n\nКомпания в поиске модели.\n\n📈 Этапы: Идея → MVP → Масштабирование",
   "inflation_Россия": "📊 РОССИЯ\n\n💹 Инфляция: 7.5%",
   "inflation_Болгария": "📊 БОЛГАРИЯ\n\n💹 Инфляция: 4.8%",
-  "inflation_США": "📊 США\n\n💹 Инфляция: 3.2%"
+  "inflation_США": "📊 США\n\n💹 Инфляция: 3.2%",
+  
+  // САД И ОГОРОД
+  "garden_Томаты": "🍅 ТОМАТЫ\n\n🌱 Посев: март-апрель\n🌿 Высадка: май-июнь\n💧 Полив: 2-3 раза/неделю\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1592878904946-b3cd8ae243d9?w=400",
+  "garden_Огурцы": "🥒 ОГУРЦЫ\n\n🌱 Посев: апрель-май\n🌿 Высадка: май-июнь\n💧 Полив: ежедневно\n☀️ Свет: 4-6 часов\n\n📸 https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=400",
+  "garden_Перец": "🫑 ПЕРЕЦ\n\n🌱 Посев: март\n🌿 Высадка: май-июнь\n💧 Полив: 2-3 раза/неделю\n☀️ Свет: 8-10 часов\n\n📸 https://images.unsplash.com/photo-1563514227147-6d2434393843?w=400",
+  "garden_Морковь": "🥕 МОРКОВЬ\n\n🌱 Посев: апрель-май\n🌿 Прореживание: 2 раза\n💧 Полив: умеренный\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400",
+  "garden_Картофель": "🥔 КАРТОФЕЛЬ\n\n🌱 Посадка: апрель-май\n🌿 Окучивание: 2-3 раза\n💧 Полив: в засуху\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400",
+  "garden_Капуста": "🥬 КАПУСТА\n\n🌱 Посев: март-апрель\n🌿 Высадка: май\n💧 Полив: обильный\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=400",
+  "garden_Лук": "🧅 ЛУК\n\n🌱 Посадка: апрель-май\n🌿 Уход: минимальный\n💧 Полив: умеренный\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400",
+  "garden_Чеснок": "🧄 ЧЕСНОК\n\n🌱 Посадка: сентябрь-октябрь\n🌿 Уход: минимальный\n💧 Полив: умеренный\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1615477066914-673c0a1cd8f9?w=400",
+  "garden_Клубника": "🍓 КЛУБНИКА\n\n🌱 Посадка: июль-август\n🌿 Уход: обрезка усов\n💧 Полив: 2-3 раза/неделю\n☀️ Свет: 8-10 часов\n\n📸 https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400",
+  "garden_Яблоня": "🍎 ЯБЛОНЯ\n\n🌱 Посадка: апрель-октябрь\n🌿 Обрезка: весна/осень\n💧 Полив: 3-4 раза/сезон\n☀️ Свет: 8-10 часов\n\n📸 https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=400",
+  "garden_Смородина": "🫐 СМОРОДИНА\n\n🌱 Посадка: сентябрь-октябрь\n🌿 Обрезка: осень\n💧 Полив: в засуху\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1596435036898-4038c0549c43?w=400",
+  "garden_Малина": "🍇 МАЛИНА\n\n🌱 Посадка: октябрь\n🌿 Обрезка: после сбора\n💧 Полив: обильный\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1596568358807-7e6df7f6e9a5?w=400",
+  "garden_Цветы": "🌸 ЦВЕТЫ\n\n🌱 Посев: март-апрель\n🌿 Уход: по виду\n💧 Полив: по потребности\n☀️ Свет: по виду\n\n📸 https://images.unsplash.com/photo-1490750967868-bcdf92dd213b?w=400",
+  "garden_Газон": "🌿 ГАЗОН\n\n🌱 Посев: апрель-сентябрь\n🌿 Стрижка: раз в неделю\n💧 Полив: 2-3 раза/неделю\n☀️ Свет: 6-8 часов\n\n📸 https://images.unsplash.com/photo-1558905540-2129070a28fc?w=400",
+  "garden_Удобрения": "🧪 УДОБРЕНИЯ\n\n🌱 Азот: рост листьев\n🌱 Фосфор: корни\n🌱 Калий: иммунитет\n🌱 Органика: перегной, компост\n\n📸 https://images.unsplash.com/photo-1628102491629-778571d893a3?w=400",
+  "garden_Вредители": "🐛 ВРЕДИТЕЛИ\n\n🚫 Тля: мыльный раствор\n🚫 Колорадский: сбор вручную\n🚫 Медведка: ловушки\n🚫 Слизни: зола, известь\n\n📸 https://images.unsplash.com/photo-1596700095722-2c8e2c6d8d71?w=400",
+  "garden_Болезни": "🦠 БОЛЕЗНИ\n\n⚠️ Фитофтора: медьсодержащие\n⚠️ Мучнистая роса: сода\n⚠️ Ржавчина: бордосская жидкость\n⚠️ Профилактика: севооборот\n\n📸 https://images.unsplash.com/photo-1585314062604-1a357de8b000?w=400",
+  "garden_Календарь": "📅 КАЛЕНДАРЬ\n\n🌱 Март: рассада\n🌱 Апрель: посев в грунт\n🌱 Май: высадка\n🌱 Июнь: уход\n🌱 Июль: сбор\n🌱 Август: заготовки\n🌱 Сентябрь: уборка\n🌱 Октябрь: подготовка к зиме\n\n📸 https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=400"
 };
 
 const SCHOOL = ["Математика","Русский язык","Литература","Физика","Химия","Биология","География","История","Обществознание","Информатика","Английский","Немецкий","ОБЖ"];
 const UNI = ["Высшая математика","Физика","Химия","Программирование","Базы данных","Сети","Экономика","Менеджмент","Право","Философия","Психология"];
+const GARDEN = ["🍅 Томаты","🥒 Огурцы","🫑 Перец","🥕 Морковь","🥔 Картофель","🥬 Капуста","🧅 Лук","🧄 Чеснок","🍓 Клубника","🍎 Яблоня","🫐 Смородина","🍇 Малина","🌸 Цветы","🌿 Газон","🧪 Удобрения","🐛 Вредители","🦠 Болезни","📅 Календарь"];
 const REFERRAL_REWARD = 50;
 
 const PAID_FEATURES = {
@@ -119,8 +140,26 @@ export default {
         else if (data === "business_main") { reply = "📊 БИЗНЕС"; kb = businessKB(); }
         else if (data === "weather_main") { reply = "🌤️ ПОГОДА\n\nНапиши /weather Москва"; kb = weatherKB(); }
         else if (data === "inflation_main") { reply = "📊 ИНФЛЯЦИЯ"; kb = inflationKB(); }
+        else if (data === "garden_main") { reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:"; kb = gardenKB(); }
         else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}\n\nНапиши задачу — решу!`; kb = backKB(); }
         else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}\n\nНапиши задачу — помогу!`; kb = backKB(); }
+        else if (data.startsWith("garden_")) {
+          const plant = data.replace("garden_","");
+          const fullReply = QUICK[data];
+          if (fullReply) {
+            // Извлекаем URL картинки
+            const photoMatch = fullReply.match(/\📸 (https?:\/\/\S+)/);
+            const photoUrl = photoMatch ? photoMatch[1] : null;
+            const caption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
+            
+            if (photoUrl) {
+              await sendPhoto(env, chatId, photoUrl, caption, gardenBackKB());
+            } else {
+              await sendKB(env, chatId, caption, gardenBackKB(), msgId);
+            }
+            return new Response("OK");
+          }
+        }
         else if (data.startsWith("pay_")) {
           const f = PAID_FEATURES[data.replace("pay_","")];
           reply = `💎 ${f.name}\n\n💰 ${f.price}⭐\n⏱️ ${f.duration}`;
@@ -191,14 +230,20 @@ export default {
         let reply = "";
 
         if (text === "/start") {
-          reply = `👋 Привет, ${name}!\n\nЯ Aiden PRO.\n\n🏫 Школа + ВУЗ\n🎓 AI-репетитор (7 дней!)\n💰 Инвестиции\n🌤️ Погода\n👥 Рефералы — 50⭐\n🔍 /search — RAG поиск\n\n📢 Подпишись:\n• @investora_zametki\n• @${MY_TELEGRAM}\n\nЖми кнопки!`;
+          reply = `👋 Привет, ${name}!\n\nЯ Aiden PRO.\n\n🏫 Школа + ВУЗ\n🌿 Сад и огород\n🎓 AI-репетитор (7 дней!)\n💰 Инвестиции\n🌤️ Погода\n👥 Рефералы — 50⭐\n🔍 /search — RAG поиск\n\n📢 Подпишись:\n• @investora_zametki\n• @${MY_TELEGRAM}\n\nЖми кнопки!`;
           await sendKB(env, chatId, reply, mainKB());
           return new Response("OK");
         }
         
         if (text === "/help") {
-          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/search [запрос] — RAG поиск\n/stats — статистика (admin)";
+          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/garden — сад и огород\n/search [запрос] — RAG поиск\n/stats — статистика (admin)";
           await sendKB(env, chatId, reply, helpKB());
+          return new Response("OK");
+        }
+
+        if (text === "/garden") {
+          reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
+          await sendKB(env, chatId, reply, gardenKB());
           return new Response("OK");
         }
         
@@ -438,6 +483,24 @@ async function sendKB(env, chatId, text, kb, msgId) {
   catch(e) {}
 }
 
+// Отправка фото с текстом
+async function sendPhoto(env, chatId, photoUrl, caption, kb) {
+  try {
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: photoUrl,
+        caption: caption,
+        reply_markup: kb ? JSON.stringify(kb) : undefined
+      })
+    });
+  } catch(e) {
+    console.error("sendPhoto error:", e);
+  }
+}
+
 function sendMsg(token, chatId, text) {
   return fetch(`https://api.telegram.org/bot${token}/sendMessage`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({chat_id: chatId, text: text})}).then(r => r.json());
 }
@@ -448,9 +511,11 @@ async function delMsg(token, chatId, msgId) {
 
 // === KEYBOARDS ===
 
-function mainKB() { return {inline_keyboard: [[{text:"🏫 Школа",callback_data:"school_main"},{text:"🎓 ВУЗ",callback_data:"uni_main"}],[{text:"🎓 AI",callback_data:"tutor_main"},{text:"💎 PREMIUM",callback_data:"paid_main"}],[{text:"👥 Рефералы",callback_data:"referral_main"},{text:"📢 Подписаться",callback_data:"subscribe_main"}],[{text:"💰 Инвест",callback_data:"invest_main"},{text:"₿ Крипта",callback_data:"crypto_main"}],[{text:"📊 Бизнес",callback_data:"business_main"}],[{text:"🌤️ Погода",callback_data:"weather_main"},{text:"📊 Инфляция",callback_data:"inflation_main"}]]}; }
+function mainKB() { return {inline_keyboard: [[{text:"🏫 Школа",callback_data:"school_main"},{text:"🎓 ВУЗ",callback_data:"uni_main"}],[{text:"🌿 Сад",callback_data:"garden_main"},{text:"🎓 AI",callback_data:"tutor_main"}],[{text:"💎 PREMIUM",callback_data:"paid_main"},{text:"👥 Рефералы",callback_data:"referral_main"}],[{text:"📢 Подписаться",callback_data:"subscribe_main"}],[{text:"💰 Инвест",callback_data:"invest_main"},{text:"₿ Крипта",callback_data:"crypto_main"}],[{text:"📊 Бизнес",callback_data:"business_main"}],[{text:"🌤️ Погода",callback_data:"weather_main"},{text:"📊 Инфляция",callback_data:"inflation_main"}]]}; }
 function schoolKB() { const kb=[]; let row=[]; for(let i=0;i<SCHOOL.length;i++){row.push({text:SCHOOL[i],callback_data:"school_"+SCHOOL[i]});if(row.length===2||i===SCHOOL.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
 function uniKB() { const kb=[]; let row=[]; for(let i=0;i<UNI.length;i++){row.push({text:UNI[i],callback_data:"uni_"+UNI[i]});if(row.length===2||i===UNI.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
+function gardenKB() { const kb=[]; let row=[]; for(let i=0;i<GARDEN.length;i++){row.push({text:GARDEN[i],callback_data:"garden_"+GARDEN[i].replace(/^[^ ]+ /,"")});if(row.length===2||i===GARDEN.length-1){kb.push(row);row=[];}} kb.push([{text:"🔙 Назад",callback_data:"back_main"}]); return {inline_keyboard: kb}; }
+function gardenBackKB() { return {inline_keyboard: [[{text:"🌿 Все культуры",callback_data:"garden_main"}],[{text:"🔙 В меню",callback_data:"back_main"}]]}; }
 function tutorKB() { return {inline_keyboard: [[{text:"💰 Купить",callback_data:"pay_tutor"}],[{text:"🔙 Назад",callback_data:"back_main"}]]}; }
 function paidKB() { return {inline_keyboard: [[{text:"🎓 AI — 99⭐",callback_data:"pay_tutor"}],[{text:"📝 ДЗ — 29⭐",callback_data:"pay_homework"}],[{text:"📚 Экзамен — 149⭐",callback_data:"pay_exam"}],[{text:"✍️ Соч — 49⭐",callback_data:"pay_essay"}],[{text:"⭐ PREMIUM — 299⭐",callback_data:"pay_premium"}],[{text:"🔙 Назад",callback_data:"back_main"}]]}; }
 function buyKB(f) { return {inline_keyboard: [[{text:"💳 Купить",callback_data:"buy_"+f}],[{text:"🔙 Назад",callback_data:"paid_main"}]]}; }
