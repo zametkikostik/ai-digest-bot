@@ -137,11 +137,13 @@ export default {
           const reply = "Вы нажали: " + data;
           
           // Отправляем сообщение
-          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+          const resp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({chat_id: chatId, text: reply})
           });
+          
+          console.log("Telegram response:", resp.status);
           
           return new Response("OK");
         }
