@@ -6,6 +6,7 @@ import re
 from typing import Optional
 from aiogram import Router, F, types
 from aiogram.filters import Command
+from aiogram import Bot
 from aiogram.enums import ChatMemberStatus
 from sqlalchemy.orm import Session
 from core.ai_client import OpenRouterClient
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-async def get_user_status(bot: types.Bot, chat_id: int, user_id: int) -> Optional[str]:
+async def get_user_status(bot: Bot, chat_id: int, user_id: int) -> Optional[str]:
     """Получить статус пользователя в чате"""
     try:
         member = await bot.get_chat_member(chat_id, user_id)
@@ -40,7 +41,7 @@ def is_moderator_or_admin(user_id: int, db: Session) -> bool:
 # ==================== КОМАНДЫ МОДЕРАТОРА ====================
 
 @router.message(Command("ban"))
-async def cmd_ban(message: types.Message, bot: types.Bot):
+async def cmd_ban(message: types.Message, bot: Bot):
     """
     Забанить пользователя
     Использование: /ban @username или ответом на сообщение
@@ -172,7 +173,7 @@ async def cmd_warn(message: types.Message):
 
 
 @router.message(Command("mute"))
-async def cmd_mute(message: types.Message, bot: types.Bot):
+async def cmd_mute(message: types.Message, bot: Bot):
     """
     Замутить пользователя (ограничить права)
     """

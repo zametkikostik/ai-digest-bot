@@ -7,7 +7,8 @@ compatibility_flags = ["nodejs_compat"]
 BOT_NAME = "AI-дайджест"
 BOT_TOPIC = "Всё об искусственном интеллекте за неделю"
 ADMIN_IDS = "1271633868"
-CHANNEL_ID = "-1001234567890"
+CHANNEL_ID = "-1001859702206"
+INVEST_CHANNEL = "-1001644114424"
 
 [[d1_databases]]
 binding = "DB"
@@ -22,5 +23,8 @@ id = "d7fe61b4e39b4607af339e57cee0bca1"
 binding = "CONVERSATION_STORE"
 id = "f3adf57a2e77412e8bb8dd38bb6394e4"
 
+[[ai]]
+binding = "AI"
+
 [triggers]
-crons = ["*/30 * * * *"]
+crons = ["0 9 * * *", "0 14 * * *", "30 19 * * *"]

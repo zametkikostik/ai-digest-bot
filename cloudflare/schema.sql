@@ -47,6 +47,18 @@ CREATE TABLE IF NOT EXISTS knowledge_documents (
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Таблица для RAG чанков (векторные эмбеддинги хранятся в KV)
+CREATE TABLE IF NOT EXISTS knowledge_chunks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document_id INTEGER,
+    chunk_index INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    embedding_key TEXT UNIQUE NOT NULL,
+    metadata TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES knowledge_documents(id)
+);
+
 CREATE TABLE IF NOT EXISTS rate_limits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_telegram_id INTEGER NOT NULL,
@@ -68,3 +80,5 @@ CREATE INDEX IF NOT EXISTS idx_violations_telegram ON violations(telegram_id);
 CREATE INDEX IF NOT EXISTS idx_violations_created ON violations(created_at);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_rate_limits_user ON rate_limits(user_telegram_id, window_start);
+CREATE INDEX IF NOT EXISTS idx_chunks_doc ON knowledge_chunks(document_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON knowledge_chunks(embedding_key);

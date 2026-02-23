@@ -103,9 +103,9 @@ async def main():
             "Просто напишите мне, и я отвечу!"
         )
         await message.reply(text, parse_mode='Markdown')
-    
+
     # Middleware для передачи зависимостей
-    @dp.middleware()
+    @dp.update.outer_middleware
     async def dependencies_middleware(handler, event, data):
         data["ai_client"] = ai_client
         data["rag"] = rag

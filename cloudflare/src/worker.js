@@ -1,6 +1,6 @@
 /**
- * AI Digest Bot - FINAL FIXED VERSION
- * Всё работает + Авто-продвижение
+ * AI Digest Bot - RAG + SCHEDULER
+ * Cloudflare Workers: AI, D1, KV, Cron
  */
 const CHANNEL_ID = "-1001859702206";
 const INVEST_CHANNEL = "-1001644114424";
@@ -28,6 +28,36 @@ const PAID_FEATURES = {
   "essay": {name: "Сочинение", price: 49, duration: "1 шт"},
   "premium": {name: "PREMIUM", price: 299, duration: "1 месяц"}
 };
+
+// POST TEMPLATES FOR SCHEDULER
+const POST_TEMPLATES = {
+  morning: [
+    "🌅 ДОБРОЕ УТРО! Начни день с пользы:\n\n{content}\n\n💡 Примени этот совет сегодня!",
+    "☕ Утренний инсайт:\n\n{content}\n\n🚀 Вперёд к новым достижениям!",
+    "🌞 Доброе утро! Сегодняшний фокус:\n\n{content}\n\n📌 Запомни это!"
+  ],
+  afternoon: [
+    "📊 ДНЕВНОЙ ДАЙДЖЕСТ\n\n{content}\n\n💼 Используй на практике!",
+    "⚡ Актуально днём:\n\n{content}\n\n🎯 Будь в тренде!",
+    "🔥 Горячая тема:\n\n{content}\n\n📈 Применяй сейчас!"
+  ],
+  evening: [
+    "🌙 ВЕЧЕРНИЙ РАЗБОР\n\n{content}\n\n📚 Изучи перед сном!",
+    "📖 На ночь глядя:\n\n{content}\n\n💭 Обдумай завтра!",
+    "🏆 Итоги дня:\n\n{content}\n\n✨ До завтра!"
+  ]
+};
+
+const POST_TOPICS = [
+  "Нейросети для работы",
+  "AI инструменты 2026",
+  "Промпт-инжиниринг",
+  "Автоматизация бизнеса",
+  "Машинное обучение",
+  "ChatGPT секреты",
+  "AI для студентов",
+  "Будущее профессий"
+];
 
 export default {
   async fetch(request, env) {
@@ -150,16 +180,24 @@ export default {
           return new Response("OK");
         }
         
+        // RAG SEARCH
+        if (text.startsWith("/search ") || text.startsWith("/rag ")) {
+          const query = text.replace("/search ", "").replace("/rag ", "");
+          const ragReply = await ragSearch(env, query, uid);
+          await sendMsg(env.BOT_TOKEN, chatId, ragReply);
+          return new Response("OK");
+        }
+
         let reply = "";
-        
+
         if (text === "/start") {
-          reply = `👋 Привет, ${name}!\n\nЯ Aiden PRO.\n\n🏫 Школа + ВУЗ\n🎓 AI-репетитор (7 дней!)\n💰 Инвестиции\n🌤️ Погода\n👥 Рефералы — 50⭐\n\n📢 Подпишись:\n• @investora_zametki\n• @${MY_TELEGRAM}\n\nЖми кнопки!`;
+          reply = `👋 Привет, ${name}!\n\nЯ Aiden PRO.\n\n🏫 Школа + ВУЗ\n🎓 AI-репетитор (7 дней!)\n💰 Инвестиции\n🌤️ Погода\n👥 Рефералы — 50⭐\n🔍 /search — RAG поиск\n\n📢 Подпишись:\n• @investora_zametki\n• @${MY_TELEGRAM}\n\nЖми кнопки!`;
           await sendKB(env, chatId, reply, mainKB());
           return new Response("OK");
         }
         
         if (text === "/help") {
-          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/stats — статистика (admin)";
+          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/search [запрос] — RAG поиск\n/stats — статистика (admin)";
           await sendKB(env, chatId, reply, helpKB());
           return new Response("OK");
         }
@@ -224,18 +262,108 @@ export default {
     return new Response("No");
   },
   
-  // AUTO POSTING
-  async scheduled(event, env) {
-    const h = new Date().getUTCHours();
-    const d = new Date().getUTCDay();
-    if (h === 9 && [1,3,5].includes(d)) await sendMsg(env.BOT_TOKEN, INVEST_CHANNEL, "💰 ИНВЕСТИЦИИ\n\n" + await ai(env, "Пост про инвестиции. 500 символов."));
-    if (h === 12 && [2,4].includes(d)) await sendMsg(env.BOT_TOKEN, INVEST_CHANNEL, "₿ КРИПТА\n\n" + await ai(env, "Пост про крипту. 500 символов."));
-    if (h === 15 && [1,4].includes(d)) await sendMsg(env.BOT_TOKEN, INVEST_CHANNEL, "📊 БИЗНЕС\n\n" + await ai(env, "Пост про бизнес. 500 символов."));
-    if (h === 18) await sendMsg(env.BOT_TOKEN, INVEST_CHANNEL, "📰 ДАЙДЖЕСТ\n\n" + await ai(env, "Дайджест. 500 символов."));
+  // AUTO POSTING - SCHEDULER
+  async scheduled(event, env, ctx) {
+    console.log("Cron triggered:", event.scheduledTime);
+    
+    const now = new Date();
+    const hour = now.getUTCHours();
+    const day = now.getUTCDay();
+    
+    // Определяем тип поста по времени
+    let postType = "morning";
+    let channel = CHANNEL_ID;
+    
+    if (hour >= 9 && hour < 12) {
+      postType = "morning";
+    } else if (hour >= 12 && hour < 17) {
+      postType = "afternoon";
+    } else if (hour >= 17) {
+      postType = "evening";
+    }
+    
+    // Генерируем контент через AI
+    const topic = POST_TOPICS[Math.floor(Math.random() * POST_TOPICS.length)];
+    const aiPrompt = `Напиши короткий пост (до 500 символов) про: ${topic}. Добавь эмодзи. Будь полезным!`;
+    const content = await ai(env, aiPrompt);
+    
+    // Выбираем шаблон
+    const templates = POST_TEMPLATES[postType];
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    const finalPost = template.replace("{content}", content);
+    
+    // Отправляем пост
+    try {
+      await sendMsg(env.BOT_TOKEN, channel, finalPost);
+      console.log("Post sent successfully");
+      
+      // Логируем в D1
+      await env.DB.prepare(
+        "INSERT INTO posts (topic, content, status, published_at) VALUES (?, ?, 'published', ?)"
+      ).bind(topic, finalPost, new Date().toISOString()).run();
+    } catch (e) {
+      console.error("Post error:", e);
+      await env.DB.prepare(
+        "INSERT INTO posts (topic, content, status, error_message) VALUES (?, ?, 'failed', ?)"
+      ).bind(topic, finalPost, e.message).run();
+    }
   }
 };
 
 // === FUNCTIONS ===
+
+// RAG SEARCH - Workers AI + KV
+async function ragSearch(env, query, userId) {
+  try {
+    // 1. Генерируем эмбеддинг запроса через Workers AI
+    const embedding = await env.ai.run("@cf/baai/bge-small-en-v1.5", {
+      text: [query]
+    });
+    const queryVector = embedding.data[0];
+    
+    // 2. Ищем похожие чанки в KV (упрощённый поиск по ключам)
+    const allKeys = [];
+    let cursor = null;
+    do {
+      const result = await env.RAG_STORE.list({ 
+        prefix: "chunk_", 
+        cursor,
+        limit: 100 
+      });
+      allKeys.push(...result.keys);
+      cursor = result.cursor;
+    } while (cursor);
+    
+    // 3. Для демо - возвращаем последние сохранённые чанки
+    // В продакшене нужен Vectorize для cosine similarity
+    let results = [];
+    for (let i = 0; i < Math.min(allKeys.length, 5); i++) {
+      const chunk = await env.RAG_STORE.get(allKeys[i].name);
+      if (chunk) results.push(chunk);
+    }
+    
+    if (results.length === 0) {
+      // Если ничего нет - используем AI для ответа
+      const aiAnswer = await ai(env, `Ответь на вопрос: ${query}. Будь краток (до 300 символов).`);
+      return `🔍 RAG поиск:\n\n${aiAnswer}\n\n💡 Добавь документы через /upload`;
+    }
+    
+    // 4. Формируем ответ
+    let answer = `🔍 Найдено: ${results.length}\n\n`;
+    answer += results.slice(0, 3).join("\n\n---\n\n");
+    
+    // 5. Добавляем AI-саммари
+    const summary = await ai(env, `Сделай краткое резюме (до 200 символов) на основе:\n${results.join("\n")}\n\nВопрос: ${query}`);
+    answer += `\n\n💡 **ИИ отвечает:**\n${summary}`;
+    
+    return answer;
+  } catch (e) {
+    console.error("RAG error:", e);
+    return "❌ Ошибка RAG поиска. Попробуйте позже.";
+  }
+}
+
+// AI GENERATION
 
 async function getWeather(lat, lon) {
   try {

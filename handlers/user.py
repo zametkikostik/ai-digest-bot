@@ -3,7 +3,7 @@
 """
 import logging
 from aiogram import Router, F, types
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.orm import Session
@@ -201,7 +201,7 @@ async def cmd_search(message: types.Message, rag: RAGRetriever):
 
 # ==================== ОБЫЧНЫЕ СООБЩЕНИЯ ====================
 
-@router.message(~Command())
+@router.message(~StateFilter(AskState.waiting))
 async def handle_message(message: types.Message, ai_client: OpenRouterClient, rag: RAGRetriever):
     """Обработка обычных сообщений"""
     db = crud.get_session()
