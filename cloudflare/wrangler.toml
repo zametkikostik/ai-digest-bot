@@ -9,6 +9,7 @@ BOT_TOPIC = "Всё об искусственном интеллекте за н
 ADMIN_IDS = "1271633868"
 CHANNEL_ID = "-1001859702206"
 INVEST_CHANNEL = "-1001644114424"
+BOT_TOKEN = "AAGgyDgXQ8L3JKr7NqukTC4vSsNiJNIzYAc"
 
 [[d1_databases]]
 binding = "DB"
