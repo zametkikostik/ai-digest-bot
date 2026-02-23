@@ -527,8 +527,9 @@ async function sendKB(env, chatId, text, kb, msgId) {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({chat_id: chatId, action: "typing"})
     });
-    // Используем editMessageText для редактирования сообщения с кнопкой
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    
+    // Сначала пробуем editMessageText
+    const editResp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -538,9 +539,32 @@ async function sendKB(env, chatId, text, kb, msgId) {
         reply_markup: JSON.stringify(kb)
       })
     });
+    
+    // Если edit не удался - отправляем новое сообщение
+    if (!editResp.ok) {
+      await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          reply_markup: JSON.stringify(kb)
+        })
+      });
+    }
   }
   catch(e) {
     console.error("sendKB error:", e);
+    // Fallback - sendMessage
+    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        reply_markup: JSON.stringify(kb)
+      })
+    });
   }
 }
 
