@@ -147,7 +147,12 @@ export default {
         else if (data === "business_main") { reply = "📊 БИЗНЕС"; kb = businessKB(); }
         else if (data === "weather_main") { reply = "🌤️ ПОГОДА\n\nНапиши /weather Москва"; kb = weatherKB(); }
         else if (data === "inflation_main") { reply = "📊 ИНФЛЯЦИЯ"; kb = inflationKB(); }
-        else if (data === "garden_main") { reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:"; kb = gardenKB(); }
+        else if (data === "garden_main") {
+          reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
+          kb = gardenKB();
+          await sendKB(env, chatId, reply, kb, msgId);
+          return new Response("OK");
+        }
         else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}\n\nНапиши задачу — решу!`; kb = backKB(); }
         else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}\n\nНапиши задачу — помогу!`; kb = backKB(); }
         else if (data.startsWith("garden_")) {
