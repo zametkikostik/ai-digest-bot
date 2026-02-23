@@ -523,63 +523,27 @@ async function ai(env, text) {
 
 async function sendKB(env, chatId, text, kb, msgId) {
   try {
-    // Показываем "печатает..." перед отправкой
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendChatAction`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({chat_id: chatId, action: "typing"})
-    });
-    
-    // Сначала пробуем editMessageText
-    const editResp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    // Отправляем новое сообщение с кнопками
+    const resp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         chat_id: chatId,
-        message_id: msgId,
         text: text,
         reply_markup: JSON.stringify(kb)
       })
     });
-    
-    // Если edit не удался - отправляем новое сообщение
-    if (!editResp.ok) {
-      await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          reply_markup: JSON.stringify(kb)
-        })
-      });
-    }
+    console.log("sendKB status:", resp.status);
   }
   catch(e) {
     console.error("sendKB error:", e);
-    // Fallback - sendMessage
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: text,
-        reply_markup: JSON.stringify(kb)
-      })
-    });
   }
 }
 
 // Отправка фото с текстом
 async function sendPhoto(env, chatId, photoUrl, caption, kb) {
   try {
-    // Показываем "печатает..." перед отправкой
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendChatAction`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({chat_id: chatId, action: "typing"})
-    });
-    await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+    const resp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -589,6 +553,7 @@ async function sendPhoto(env, chatId, photoUrl, caption, kb) {
         reply_markup: kb ? JSON.stringify(kb) : undefined
       })
     });
+    console.log("sendPhoto status:", resp.status);
   } catch(e) {
     console.error("sendPhoto error:", e);
   }
