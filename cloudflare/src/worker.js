@@ -100,29 +100,29 @@ const POST_TOPICS = [
 ];
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "GET") return new Response("Bot OK");
-    
+
     if (request.method === "POST") {
       const update = await request.json();
-      
+
       // Payment
       if (update.pre_checkout_query) {
-        await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
+        ctx.waitUntil(fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
           method: "POST", headers: {"Content-Type": "application/json"},
           body: JSON.stringify({pre_checkout_query_id: update.pre_checkout_query.id, ok: true})
-        });
+        }));
         return new Response("OK");
       }
-      
+
       if (update.message?.successful_payment) {
         const userId = update.message.from.id.toString();
         const feature = update.message.successful_payment.invoice_payload;
-        await activatePaidFeature(env, userId, feature);
-        await sendMsg(env.BOT_TOKEN, update.message.chat.id, "✅ Оплата успешна!");
+        ctx.waitUntil(activatePaidFeature(env, userId, feature));
+        ctx.waitUntil(sendMsg(env.BOT_TOKEN, update.message.chat.id, "✅ Оплата успешна!"));
         return new Response("OK");
       }
-      
+
       // BUTTONS - МГНОВЕННО
       if (update.callback_query) {
         const cb = update.callback_query;
@@ -133,16 +133,10 @@ export default {
 
         console.log("Callback received:", data, "from:", userId, "chat:", chatId);
 
-        // Быстрая реакция на нажатие (answerCallbackQuery)
-        const answerResp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({callback_query_id: cb.id})
-        });
-        console.log("answerCallbackQuery status:", answerResp.status);
-
         let reply = "";
         let kb = null;
+        let sendPhotoUrl = null;
+        let sendCaption = null;
 
         // КЭШ - МГНОВЕННО
         if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); console.log("QUICK match:", data); }
@@ -176,8 +170,6 @@ export default {
           reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
           kb = gardenKB();
           console.log("garden_main - sending reply");
-          await sendKB(env, chatId, reply, kb, msgId);
-          return new Response("OK");
         }
         else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}\n\nНапиши задачу — решу!`; kb = backKB(); }
         else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}\n\nНапиши задачу — помогу!`; kb = backKB(); }
@@ -188,16 +180,10 @@ export default {
           if (fullReply) {
             // Извлекаем URL картинки
             const photoMatch = fullReply.match(/\📸 (https?:\/\/\S+)/);
-            const photoUrl = photoMatch ? photoMatch[1] : null;
-            const caption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
-
-            if (photoUrl) {
-              console.log("Sending photo:", photoUrl);
-              await sendPhoto(env, chatId, photoUrl, caption, gardenBackKB());
-            } else {
-              await sendKB(env, chatId, caption, gardenBackKB(), msgId);
-            }
-            return new Response("OK");
+            sendPhotoUrl = photoMatch ? photoMatch[1] : null;
+            sendCaption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
+            kb = gardenBackKB();
+            console.log("Sending photo:", sendPhotoUrl);
           }
         }
         else if (data.startsWith("pay_")) {
@@ -207,13 +193,27 @@ export default {
         }
         else if (data.startsWith("buy_")) {
           const f = PAID_FEATURES[data.replace("buy_","")];
-          await sendInvoice(env, chatId, f);
+          ctx.waitUntil(sendInvoice(env, chatId, f));
           return new Response("OK");
         }
         else { reply = "Меню"; kb = mainKB(); console.log("default menu"); }
 
-        console.log("Sending reply:", reply.substring(0, 50));
-        if (reply) await sendKB(env, chatId, reply, kb, msgId);
+        console.log("Sending reply:", reply ? reply.substring(0, 50) : "photo");
+        
+        // Сначала answerCallbackQuery - СРАЗУ
+        ctx.waitUntil(fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({callback_query_id: cb.id})
+        }));
+        
+        // Потом отправляем сообщение
+        if (sendPhotoUrl) {
+          ctx.waitUntil(sendPhoto(env, chatId, sendPhotoUrl, sendCaption, kb));
+        } else if (reply) {
+          ctx.waitUntil(sendKB(env, chatId, reply, kb, msgId));
+        }
+        
         return new Response("OK");
       }
       
