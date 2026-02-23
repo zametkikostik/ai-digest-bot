@@ -104,132 +104,126 @@ export default {
     if (request.method === "GET") return new Response("Bot OK");
 
     if (request.method === "POST") {
-      const update = await request.json();
+      try {
+        const update = await request.json();
+        console.log("Received update:", JSON.stringify(update).substring(0, 200));
 
-      // Payment
-      if (update.pre_checkout_query) {
-        ctx.waitUntil(fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
-          method: "POST", headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({pre_checkout_query_id: update.pre_checkout_query.id, ok: true})
-        }));
-        return new Response("OK");
-      }
-
-      if (update.message?.successful_payment) {
-        const userId = update.message.from.id.toString();
-        const feature = update.message.successful_payment.invoice_payload;
-        ctx.waitUntil(activatePaidFeature(env, userId, feature));
-        ctx.waitUntil(sendMsg(env.BOT_TOKEN, update.message.chat.id, "✅ Оплата успешна!"));
-        return new Response("OK");
-      }
-
-      // BUTTONS - МГНОВЕННО
-      if (update.callback_query) {
-        const cb = update.callback_query;
-        const data = cb.data;
-        const chatId = cb.message.chat.id;
-        const msgId = cb.message.message_id;
-        const userId = cb.from.id.toString();
-
-        console.log("Callback received:", data);
-
-        // СРАЗУ возвращаем OK Telegram
-        const promise = (async () => {
-          let reply = "";
-          let kb = null;
-          let sendPhotoUrl = null;
-          let sendCaption = null;
-
-          // КЭШ - МГНОВЕННО
-          if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); }
-          else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); }
-          else if (data === "school_main") { reply = "🏫 ШКОЛА\n\nВыбери предмет:"; kb = schoolKB(); }
-          else if (data === "uni_main") { reply = "🎓 ВУЗ\n\nВыбери предмет:"; kb = uniKB(); }
-          else if (data === "tutor_main") {
-            const has = await checkTutor(env, userId);
-            reply = has ? "✅ Подписка активна!" : "💰 7 дней бесплатно!";
-            kb = tutorKB();
-          }
-          else if (data === "paid_main") { reply = "💎 PREMIUM"; kb = paidKB(); }
-          else if (data === "referral_main") {
-            const ref = await getRefData(env, userId);
-            reply = `👥 Рефералы: ${ref.referrals.length}\n⭐ Заработано: ${ref.earned}`;
-            kb = backKB();
-          }
-          else if (data === "subscribe_main") {
-            reply = "📢 ПОДПИШИСЬ";
-            kb = subKB();
-          }
-          else if (data === "invest_main") { reply = "💰 ИНВЕСТИЦИИ"; kb = investKB(); }
-          else if (data === "crypto_main") { reply = "₿ КРИПТА"; kb = cryptoKB(); }
-          else if (data === "business_main") { reply = "📊 БИЗНЕС"; kb = businessKB(); }
-          else if (data === "weather_main") { reply = "🌤️ ПОГОДА"; kb = weatherKB(); }
-          else if (data === "inflation_main") { reply = "📊 ИНФЛЯЦИЯ"; kb = inflationKB(); }
-          else if (data === "garden_main") {
-            reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
-            kb = gardenKB();
-          }
-          else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}`; kb = backKB(); }
-          else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}`; kb = backKB(); }
-          else if (data.startsWith("garden_")) {
-            const fullReply = QUICK[data];
-            if (fullReply) {
-              const photoMatch = fullReply.match(/\📸 (https?:\/\/\S+)/);
-              sendPhotoUrl = photoMatch ? photoMatch[1] : null;
-              sendCaption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
-              kb = gardenBackKB();
-            }
-          }
-          else if (data.startsWith("pay_")) {
-            const f = PAID_FEATURES[data.replace("pay_","")];
-            reply = `💎 ${f.name} — ${f.price}⭐`;
-            kb = buyKB(data.replace("pay_",""));
-          }
-          else { reply = "Меню"; kb = mainKB(); }
-
-          // answerCallbackQuery
-          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({callback_query_id: cb.id})
-          });
-          
-          // Сообщение
-          if (sendPhotoUrl) {
-            await sendPhoto(env, chatId, sendPhotoUrl, sendCaption, kb);
-          } else if (reply) {
-            await sendKB(env, chatId, reply, kb, msgId);
-          }
-        })();
-        
-        ctx.waitUntil(promise);
-        return new Response("OK");
-      }
-      
-      // MESSAGES
-      if (update.message) {
-        const msg = update.message;
-        const chatId = msg.chat.id;
-        const text = msg.text || "";
-        const name = msg.from?.first_name || "User";
-        const uid = msg.from?.id?.toString();
-        const chatType = msg.chat.type;
-        
-        // MODERATION
-        if ((chatType === "group" || chatType === "supergroup") && !text.startsWith("/") && !text.includes("@AidenHelpbot")) {
-          if (/https?:\/\/\S+/i.test(text)) {
-            await delMsg(env.BOT_TOKEN, chatId, msg.message_id);
-            return new Response("OK");
-          }
+        // Payment
+        if (update.pre_checkout_query) {
+          ctx.waitUntil(fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerPreCheckoutQuery`, {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({pre_checkout_query_id: update.pre_checkout_query.id, ok: true})
+          }));
           return new Response("OK");
         }
+
+        if (update.message?.successful_payment) {
+          const userId = update.message.from.id.toString();
+          const feature = update.message.successful_payment.invoice_payload;
+          ctx.waitUntil(activatePaidFeature(env, userId, feature));
+          ctx.waitUntil(sendMsg(env.BOT_TOKEN, update.message.chat.id, "✅ Оплата успешна!"));
+          return new Response("OK");
+        }
+
+        // BUTTONS - callback_query
+        if (update.callback_query) {
+          const cb = update.callback_query;
+          const data = cb.data;
+          const chatId = cb.message.chat.id;
+          const msgId = cb.message.message_id;
+          const userId = cb.from.id.toString();
+
+          console.log("Callback:", data);
+
+          // СРАЗУ возвращаем OK Telegram
+          const promise = (async () => {
+            let reply = "";
+            let kb = null;
+            let sendPhotoUrl = null;
+
+            // Обработка кнопок
+            if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); }
+            else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); }
+            else if (data === "school_main") { reply = "🏫 ШКОЛА"; kb = schoolKB(); }
+            else if (data === "uni_main") { reply = "🎓 ВУЗ"; kb = uniKB(); }
+            else if (data === "garden_main") { reply = "🌿 САД И ОГОРОД"; kb = gardenKB(); }
+            else if (data === "tutor_main") {
+              const has = await checkTutor(env, userId);
+              reply = has ? "✅ Активно!" : "💰 7 дней бесплатно!";
+              kb = tutorKB();
+            }
+            else if (data === "paid_main") { reply = "💎 PREMIUM"; kb = paidKB(); }
+            else if (data === "referral_main") {
+              const ref = await getRefData(env, userId);
+              reply = `👥 ${ref.referrals.length}`;
+              kb = backKB();
+            }
+            else if (data === "subscribe_main") { reply = "📢 Подпишись"; kb = subKB(); }
+            else if (data === "invest_main") { reply = "💰 Инвест"; kb = investKB(); }
+            else if (data === "crypto_main") { reply = "₿ Крипта"; kb = cryptoKB(); }
+            else if (data === "business_main") { reply = "📊 Бизнес"; kb = businessKB(); }
+            else if (data === "weather_main") { reply = "🌤️ Погода"; kb = weatherKB(); }
+            else if (data === "inflation_main") { reply = "📊 Инфляция"; kb = inflationKB(); }
+            else if (data.startsWith("school_")) { reply = `🏫 ${data}`; kb = backKB(); }
+            else if (data.startsWith("uni_")) { reply = `🎓 ${data}`; kb = backKB(); }
+            else if (data.startsWith("garden_")) {
+              const fullReply = QUICK[data];
+              if (fullReply) {
+                const photoMatch = fullReply.match(/📸 (https?:\/\/\S+)/);
+                sendPhotoUrl = photoMatch ? photoMatch[1] : null;
+                kb = gardenBackKB();
+              }
+            }
+            else if (data.startsWith("pay_")) {
+              const f = PAID_FEATURES[data.replace("pay_","")];
+              reply = `💎 ${f.name} — ${f.price}⭐`;
+              kb = buyKB(data.replace("pay_",""));
+            }
+            else { reply = "Меню"; kb = mainKB(); }
+
+            // answerCallbackQuery
+            await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({callback_query_id: cb.id})
+            });
+            
+            // Сообщение
+            if (sendPhotoUrl) {
+              await sendPhoto(env, chatId, sendPhotoUrl, reply || "", kb);
+            } else if (reply) {
+              await sendKB(env, chatId, reply, kb, msgId);
+            }
+          })();
+          
+          ctx.waitUntil(promise);
+          return new Response("OK");
+        }
+
+        // MESSAGES
+        if (update.message) {
+          const msg = update.message;
+          const chatId = msg.chat.id;
+          const text = msg.text || "";
+          const name = msg.from?.first_name || "User";
+          const uid = msg.from?.id?.toString();
+          const chatType = msg.chat.type;
         
-        // REFERRAL
-        if (text.startsWith("/start ref_")) {
-          const refId = text.replace("/start ref_", "");
-          if (refId !== uid) {
-            await addRef(env, uid, refId);
-            await activateTutor(env, uid, "trial", 7);
+          // MODERATION
+          if ((chatType === "group" || chatType === "supergroup") && !text.startsWith("/") && !text.includes("@AidenHelpbot")) {
+            if (/https?:\/\/\S+/i.test(text)) {
+              await delMsg(env.BOT_TOKEN, chatId, msg.message_id);
+              return new Response("OK");
+            }
+            return new Response("OK");
+          }
+        
+          // REFERRAL
+          if (text.startsWith("/start ref_")) {
+            const refId = text.replace("/start ref_", "");
+            if (refId !== uid) {
+              await addRef(env, uid, refId);
+              await activateTutor(env, uid, "trial", 7);
             await sendMsg(env.BOT_TOKEN, chatId, `✅ 7 дней бесплатно!\n\nТвоя ссылка:\nt.me/AidenHelpbot?start=ref_${uid}`);
             return new Response("OK");
           }
