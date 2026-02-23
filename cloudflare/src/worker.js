@@ -136,14 +136,17 @@ export default {
           // Простой ответ
           const reply = "Вы нажали: " + data;
           
-          // Отправляем сообщение
+          // Отправляем сообщение с заголовками
           const resp = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {
+              "Content-Type": "application/json",
+              "User-Agent": "CloudflareWorker"
+            },
             body: JSON.stringify({chat_id: chatId, text: reply})
           });
           
-          console.log("Telegram response:", resp.status);
+          console.log("Telegram response:", resp.status, await resp.text());
           
           return new Response("OK");
         }
