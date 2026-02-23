@@ -131,89 +131,78 @@ export default {
         const msgId = cb.message.message_id;
         const userId = cb.from.id.toString();
 
-        console.log("Callback received:", data, "from:", userId, "chat:", chatId);
+        console.log("Callback received:", data);
 
-        let reply = "";
-        let kb = null;
-        let sendPhotoUrl = null;
-        let sendCaption = null;
+        // СРАЗУ возвращаем OK Telegram
+        const promise = (async () => {
+          let reply = "";
+          let kb = null;
+          let sendPhotoUrl = null;
+          let sendCaption = null;
 
-        // КЭШ - МГНОВЕННО
-        if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); console.log("QUICK match:", data); }
-        else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); console.log("back_main"); }
-        else if (data === "school_main") { reply = "🏫 ШКОЛА\n\nВыбери предмет:"; kb = schoolKB(); console.log("school_main"); }
-        else if (data === "uni_main") { reply = "🎓 ВУЗ\n\nВыбери предмет:"; kb = uniKB(); console.log("uni_main"); }
-        else if (data === "tutor_main") {
-          const has = await checkTutor(env, userId);
-          reply = has ? "✅ Подписка активна!" : "💰 7 дней бесплатно!";
-          kb = tutorKB();
-          console.log("tutor_main");
-        }
-        else if (data === "paid_main") { reply = "💎 PREMIUM"; kb = paidKB(); console.log("paid_main"); }
-        else if (data === "referral_main") {
-          const ref = await getRefData(env, userId);
-          reply = `👥 Рефералы: ${ref.referrals.length}\n⭐ Заработано: ${ref.earned}\n\nТвоя ссылка:\nt.me/AidenHelpbot?start=ref_${userId}`;
-          kb = backKB();
-          console.log("referral_main");
-        }
-        else if (data === "subscribe_main") {
-          reply = "📢 ПОДПИШИСЬ:\n\n• @investora_zametki\n• @" + MY_TELEGRAM;
-          kb = subKB();
-          console.log("subscribe_main");
-        }
-        else if (data === "invest_main") { reply = "💰 ИНВЕСТИЦИИ"; kb = investKB(); console.log("invest_main"); }
-        else if (data === "crypto_main") { reply = "₿ КРИПТА"; kb = cryptoKB(); console.log("crypto_main"); }
-        else if (data === "business_main") { reply = "📊 БИЗНЕС"; kb = businessKB(); console.log("business_main"); }
-        else if (data === "weather_main") { reply = "🌤️ ПОГОДА\n\nНапиши /weather Москва"; kb = weatherKB(); console.log("weather_main"); }
-        else if (data === "inflation_main") { reply = "📊 ИНФЛЯЦИЯ"; kb = inflationKB(); console.log("inflation_main"); }
-        else if (data === "garden_main") {
-          reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
-          kb = gardenKB();
-          console.log("garden_main - sending reply");
-        }
-        else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}\n\nНапиши задачу — решу!`; kb = backKB(); }
-        else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}\n\nНапиши задачу — помогу!`; kb = backKB(); }
-        else if (data.startsWith("garden_")) {
-          const plant = data.replace("garden_","");
-          const fullReply = QUICK[data];
-          console.log("garden_ button:", plant, "has QUICK:", !!fullReply);
-          if (fullReply) {
-            // Извлекаем URL картинки
-            const photoMatch = fullReply.match(/\📸 (https?:\/\/\S+)/);
-            sendPhotoUrl = photoMatch ? photoMatch[1] : null;
-            sendCaption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
-            kb = gardenBackKB();
-            console.log("Sending photo:", sendPhotoUrl);
+          // КЭШ - МГНОВЕННО
+          if (QUICK[data]) { reply = QUICK[data]; kb = backKB(); }
+          else if (data === "back_main") { reply = "🔙 Меню"; kb = mainKB(); }
+          else if (data === "school_main") { reply = "🏫 ШКОЛА\n\nВыбери предмет:"; kb = schoolKB(); }
+          else if (data === "uni_main") { reply = "🎓 ВУЗ\n\nВыбери предмет:"; kb = uniKB(); }
+          else if (data === "tutor_main") {
+            const has = await checkTutor(env, userId);
+            reply = has ? "✅ Подписка активна!" : "💰 7 дней бесплатно!";
+            kb = tutorKB();
           }
-        }
-        else if (data.startsWith("pay_")) {
-          const f = PAID_FEATURES[data.replace("pay_","")];
-          reply = `💎 ${f.name}\n\n💰 ${f.price}⭐\n⏱️ ${f.duration}`;
-          kb = buyKB(data.replace("pay_",""));
-        }
-        else if (data.startsWith("buy_")) {
-          const f = PAID_FEATURES[data.replace("buy_","")];
-          ctx.waitUntil(sendInvoice(env, chatId, f));
-          return new Response("OK");
-        }
-        else { reply = "Меню"; kb = mainKB(); console.log("default menu"); }
+          else if (data === "paid_main") { reply = "💎 PREMIUM"; kb = paidKB(); }
+          else if (data === "referral_main") {
+            const ref = await getRefData(env, userId);
+            reply = `👥 Рефералы: ${ref.referrals.length}\n⭐ Заработано: ${ref.earned}`;
+            kb = backKB();
+          }
+          else if (data === "subscribe_main") {
+            reply = "📢 ПОДПИШИСЬ";
+            kb = subKB();
+          }
+          else if (data === "invest_main") { reply = "💰 ИНВЕСТИЦИИ"; kb = investKB(); }
+          else if (data === "crypto_main") { reply = "₿ КРИПТА"; kb = cryptoKB(); }
+          else if (data === "business_main") { reply = "📊 БИЗНЕС"; kb = businessKB(); }
+          else if (data === "weather_main") { reply = "🌤️ ПОГОДА"; kb = weatherKB(); }
+          else if (data === "inflation_main") { reply = "📊 ИНФЛЯЦИЯ"; kb = inflationKB(); }
+          else if (data === "garden_main") {
+            reply = "🌿 САД И ОГОРОД\n\nВыбери культуру:";
+            kb = gardenKB();
+          }
+          else if (data.startsWith("school_")) { reply = `🏫 ${data.replace("school_","")}`; kb = backKB(); }
+          else if (data.startsWith("uni_")) { reply = `🎓 ${data.replace("uni_","")}`; kb = backKB(); }
+          else if (data.startsWith("garden_")) {
+            const fullReply = QUICK[data];
+            if (fullReply) {
+              const photoMatch = fullReply.match(/\📸 (https?:\/\/\S+)/);
+              sendPhotoUrl = photoMatch ? photoMatch[1] : null;
+              sendCaption = fullReply.replace(/\📸 https?:\/\/\S+/, '').trim();
+              kb = gardenBackKB();
+            }
+          }
+          else if (data.startsWith("pay_")) {
+            const f = PAID_FEATURES[data.replace("pay_","")];
+            reply = `💎 ${f.name} — ${f.price}⭐`;
+            kb = buyKB(data.replace("pay_",""));
+          }
+          else { reply = "Меню"; kb = mainKB(); }
 
-        console.log("Sending reply:", reply ? reply.substring(0, 50) : "photo");
+          // answerCallbackQuery
+          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({callback_query_id: cb.id})
+          });
+          
+          // Сообщение
+          if (sendPhotoUrl) {
+            await sendPhoto(env, chatId, sendPhotoUrl, sendCaption, kb);
+          } else if (reply) {
+            await sendKB(env, chatId, reply, kb, msgId);
+          }
+        })();
         
-        // Сначала answerCallbackQuery - СРАЗУ
-        ctx.waitUntil(fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/answerCallbackQuery`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({callback_query_id: cb.id})
-        }));
-        
-        // Потом отправляем сообщение
-        if (sendPhotoUrl) {
-          ctx.waitUntil(sendPhoto(env, chatId, sendPhotoUrl, sendCaption, kb));
-        } else if (reply) {
-          ctx.waitUntil(sendKB(env, chatId, reply, kb, msgId));
-        }
-        
+        ctx.waitUntil(promise);
         return new Response("OK");
       }
       
