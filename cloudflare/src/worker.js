@@ -309,8 +309,8 @@ export default {
         }
         
         if (text === "/help") {
-          reply = "📖 СПРАВКА\n\n/school [предмет]\n/university [предмет]\n/tutor — AI-репетитор\n/paid — PREMIUM\n/ref — рефералы\n/weather [город]\n/garden — сад и огород\n/search [запрос] — RAG поиск\n/add [текст] — добавить в базу (admin)\n/knowledge — список знаний (admin)\n/del [ключ] — удалить знание (admin)\n/stats — статистика (admin)";
-          await sendKB(env, chatId, reply, helpKB());
+          reply = "📖 СПРАВКА\n\nДля всех:\n• /start — приветствие\n• /ask [вопрос] — AI ответ\n• /search [запрос] — RAG поиск\n• /categories — категории\n• /weather [город] — погода\n• /crypto — криптовалюты\n• /stocks — акции MOEX\n• /inflation — инфляция\n\nPremium (Admin бесплатно):\n• /tutor — AI Репетитор\n• /lawyer_ru — AI Юрист РФ\n• /lawyer_bg — AI Юрист BG\n• /lawyer_criminal — Уголовное\n• /language — AI Языки\n• /seo_audit — AI SEO\n• /journalist — AI Журналист\n• /expert — AI Эксперт\n• /criminal_track — Дела\n\nАдмин:\n• /add [текст] — в базу\n• /knowledge — список\n• /del [ключ] — удалить\n• /stats — статистика";
+          await sendKB(env, chatId, reply, {inline_keyboard: [[{text:"📚 Категории",callback_data:"faq_categories"}],[{text:"💎 Premium",callback_data:"paid_main"}]]});
           return new Response("OK");
         }
 
@@ -320,9 +320,69 @@ export default {
           return new Response("OK");
         }
         
+        // PREMIUM COMMANDS - Admin бесплатно
         if (text === "/tutor") {
-          const has = await checkTutor(env, uid);
-          reply = has ? "✅ Подписка активна!" : "💰 7 дней бесплатно!\n\n/paid — купить";
+          const isAdmin = ADMIN_IDS.includes(uid);
+          if (isAdmin) {
+            reply = "🎓 AI Репетитор — подготовка к ОГЭ/ЕГЭ\n\nПредметы:\n📐 Математика\n📖 Русский язык\n⚛️ Физика\n📜 Обществознание\n📚 История\n🧬 Биология\n🧪 Химия\n💻 Информатика\n🇬🇧 Английский\n\nАдмин: Бесплатно!";
+            await sendKB(env, chatId, reply, {inline_keyboard: [[{text:"📐 Математика",callback_data:"tutor_math"},{text:"📖 Русский",callback_data:"tutor_russian"}],[{text:"⚛️ Физика",callback_data:"tutor_physics"}],[{text:"📝 Пробный тест",callback_data:"tutor_exam"}]]});
+          } else {
+            const has = await checkTutor(env, uid);
+            reply = has ? "✅ Подписка активна!" : "💰 7 дней бесплатно!\n\n/paid — купить";
+            await sendMsg(env.BOT_TOKEN, chatId, reply);
+          }
+          return new Response("OK");
+        }
+
+        if (text === "/lawyer_ru") {
+          const isAdmin = ADMIN_IDS.includes(uid);
+          reply = "⚖️ AI Юрист Россия\n\nОбласти права:\n✅ Гражданское право (ГК РФ)\n✅ Уголовное право (УК РФ)\n✅ Трудовое право (ТК РФ)\n✅ Налоговое право (НК РФ)\n✅ Семейное право (СК РФ)\n✅ Админ: Бесплатно!";
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+
+        if (text === "/lawyer_bg") {
+          const isAdmin = ADMIN_IDS.includes(uid);
+          reply = "⚖️ AI Юрист Болгария\n\nОбласти права:\n✅ Гражданско право (ЗЗД)\n✅ Наказателно право (НК)\n✅ Трудово право (КТ)\n✅ Данъчно право (ЗКПО)\n✅ Семейно право (СК)\n✅ Админ: Бесплатно!";
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+
+        if (text === "/lawyer_criminal") {
+          reply = "⚖️ Уголовное право\n\n🇷🇺 Россия (УК РФ):\n• Преступления против личности\n• Преступления против собственности\n• Экономические преступления\n\n🇧🇬 Болгария (НК):\n• Член 115: Убийство\n• Член 194: Кражба\n• Член 212: Измама";
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+
+        if (text === "/language") {
+          const isAdmin = ADMIN_IDS.includes(uid);
+          reply = "🗣️ AI Учитель языков\n\nПопулярные языки:\n🇬🇧 English\n🇧🇬 Български\n🇩🇪 Deutsch\n🇫🇷 Français\n🇪🇸 Español\n🇮🇹 Italiano\n🇹🇷 Türkçe\n🇨🇳 中文\n🇯🇵 日本語\n🇰🇷 한국어\n\nАдмин: Бесплатно!";
+          await sendKB(env, chatId, reply, {inline_keyboard: [[{text:"🇬🇧 English",callback_data:"lang_en"},{text:"🇧🇬 Български",callback_data:"lang_bg"}],[{text:"🇩🇪 Deutsch",callback_data:"lang_de"},{text:"🇫🇷 Français",callback_data:"lang_fr"}]]});
+          return new Response("OK");
+        }
+
+        if (text === "/seo_audit") {
+          const isAdmin = ADMIN_IDS.includes(uid);
+          reply = "🔍 AI SEO Эксперт\n\nВозможности:\n✅ SEO аудит сайта\n✅ Подбор ключевых слов\n✅ Оптимизация мета-тегов\n✅ Анализ конкурентов\n✅ Рекомендации по контенту\n\nАдмин: Бесплатно!\n\nОтправьте URL сайта для аудита!";
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+
+        if (text === "/journalist") {
+          const isAdmin = ADMIN_IDS.includes(uid);
+          reply = "📰 AI Журналист\n\nТипы контента:\n✅ Новостные статьи\n✅ Пресс-релизы\n✅ Посты для Telegram\n✅ Статьи для Яндекс.Дзен\n✅ Блоги и обзоры\n\nАдмин: Бесплатно!\n\nОтправьте тему для статьи!";
+          await sendKB(env, chatId, reply, {inline_keyboard: [[{text:"📝 Новость",callback_data:"journalist_news"},{text:"📢 Пресс-релиз",callback_data:"journalist_press"}],[{text:"📱 Telegram",callback_data:"journalist_telegram"}]]});
+          return new Response("OK");
+        }
+
+        if (text === "/expert") {
+          reply = "🎯 AI Эксперт — контент для каналов\n\nКатегории:\n🤖 AI и нейросети\n💰 Инвестиции\n₿ Криптовалюты\n🏢 Бизнес\n🎓 Образование\n\nОтправьте тему для поста!";
+          await sendMsg(env.BOT_TOKEN, chatId, reply);
+          return new Response("OK");
+        }
+
+        if (text === "/criminal_track") {
+          reply = "⚖️ Отслеживание уголовных дел\n\nИсточники:\n🇷🇺 Россия:\n• ГАС Правосудие\n• Картотека арбитражных дел\n\n🇧🇬 Болгария:\n• Портал на съдебната власт\n\nКоманды:\n• /criminal_search [ФИО] — Поиск\n• /criminal_case [номер] — Детали";
           await sendMsg(env.BOT_TOKEN, chatId, reply);
           return new Response("OK");
         }

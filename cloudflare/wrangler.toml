@@ -4,13 +4,13 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-BOT_NAME = "AI-дайджест"
-BOT_TOPIC = "Всё об искусственном интеллекте за неделю"
+BOT_NAME = "Aiden PRO"
+BOT_TOPIC = "Школа + ВУЗ + AI + Инвестиции + Крипта + Бизнес + Погода"
 ADMIN_IDS = "1271633868"
 CHANNEL_ID = "-1001859702206"
 INVEST_CHANNEL = "-1001644114424"
-# BOT_TOKEN должен быть установлен через Cloudflare Secrets!
-# wrangler secret put BOT_TOKEN
+MY_TELEGRAM = "zametkikostik"
+# BOT_TOKEN и OPENROUTER_API_KEY устанавливаются через wrangler secret put!
 
 [[d1_databases]]
 binding = "DB"
