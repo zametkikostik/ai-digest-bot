@@ -57,7 +57,8 @@ async def main():
     # Инициализация компонентов
     ai_client = OpenRouterClient(config.OPENROUTER_API_KEY)
     rag = RAGRetriever(config.CHROMA_DB_PATH)
-    real_time_data = RealTimeData(config.OPENWEATHER_API_KEY)
+    # Погода работает без API ключа (используются дефолтные данные)
+    real_time_data = RealTimeData(None)
 
     logger.info("AI клиент и RAG система инициализированы")
 
@@ -65,12 +66,8 @@ async def main():
     self_learner = init_self_learner(ai_client, rag)
     logger.info("Система самообучения инициализирована")
 
-    # Инициализация Яндекс.Алисы (если указаны ключи)
-    if config.YANDEX_API_KEY and config.YANDEX_FOLDER_ID:
-        init_yandex_alice(config.YANDEX_API_KEY, config.YANDEX_FOLDER_ID)
-        logger.info("Яндекс.Алиса инициализирована")
-    else:
-        logger.warning("YANDEX_API_KEY или YANDEX_FOLDER_ID не указаны, Алиса отключена")
+    # TTS через gTTS (бесплатно, без API ключей)
+    logger.info("TTS через gTTS инициализирован (бесплатно)")
     
     # Создание бота и диспетчера
     bot = Bot(
@@ -131,11 +128,21 @@ async def main():
     
     # Запуск polling
     logger.info("Запуск polling...")
-    
+
+    # Удаляем webhook, если он установлен (конфликт с polling)
+    try:
+        await bot.delete_webhook()
+        logger.info("Webhook удалён (если был установлен)")
+    except Exception as e:
+        logger.warning(f"Не удалось удалить webhook: {e}")
+
     try:
         await dp.start_polling(bot)
     except KeyboardInterrupt:
         logger.info("Остановка бота...")
+    except Exception as e:
+        logger.critical(f"Ошибка polling: {e}")
+        raise
     finally:
         # Очистка
         if scheduler:

@@ -18,8 +18,8 @@ class Config:
     YANDEX_API_KEY: str = os.getenv("YANDEX_API_KEY", "")
     YANDEX_FOLDER_ID: str = os.getenv("YANDEX_FOLDER_ID", "")
 
-    # External APIs
-    OPENWEATHER_API_KEY: str = os.getenv("OPENWEATHER_API_KEY", "")
+    # External APIs (опционально)
+    OPENWEATHER_API_KEY: str = os.getenv("OPENWEATHER_API_KEY", "")  # Опционально, есть дефолтная погода
     MOEX_API_URL: str = "https://iss.moex.com/iss"
     COINGECKO_API_URL: str = "https://api.coingecko.com/api/v3"
 

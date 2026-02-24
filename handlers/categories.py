@@ -18,7 +18,8 @@ from config import config
 logger = logging.getLogger(__name__)
 
 router = Router()
-real_time_data = RealTimeData(config.OPENWEATHER_API_KEY)
+# Инициализация real_time_data без API ключа (работает с дефолтными данными)
+real_time_data = RealTimeData(None)
 
 
 # ==================== КАТЕГОРИИ ====================

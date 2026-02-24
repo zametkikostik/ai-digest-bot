@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: aiden_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./bot.db:/app/bot.db
+      - ./logs:/app/logs
+    networks:
+      - bot_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  bot_network:
+    driver: bridge
