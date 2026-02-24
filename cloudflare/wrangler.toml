@@ -1,7 +1,10 @@
 name = "ai-digest-bot"
-main = "src/worker.js"
+main = "src/worker-sw.js"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Секреты устанавливаются через: wrangler secret put <NAME>
+# BOT_TOKEN, OPENROUTER_API_KEY
 
 [vars]
 BOT_NAME = "Aiden PRO"
@@ -10,13 +13,14 @@ ADMIN_IDS = "1271633868"
 CHANNEL_ID = "-1001859702206"
 INVEST_CHANNEL = "-1001644114424"
 MY_TELEGRAM = "zametkikostik"
-# BOT_TOKEN и OPENROUTER_API_KEY устанавливаются через wrangler secret put!
 
+# D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-digest-bot-db"
 database_id = "cee284b6-8392-4db8-8389-59bd9eafc869"
 
+# KV Namespaces
 [[kv_namespaces]]
 binding = "RAG_STORE"
 id = "d7fe61b4e39b4607af339e57cee0bca1"
@@ -25,8 +29,10 @@ id = "d7fe61b4e39b4607af339e57cee0bca1"
 binding = "CONVERSATION_STORE"
 id = "f3adf57a2e77412e8bb8dd38bb6394e4"
 
+# AI Binding
 [ai]
 binding = "AI"
 
+# Triggers (CRON для polling - опционально)
 [triggers]
 crons = ["0 9 * * *", "0 14 * * *", "30 19 * * *"]
