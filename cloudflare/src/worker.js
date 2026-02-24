@@ -1,37 +1,20 @@
 /**
- * Aiden PRO Bot - Cloudflare Workers (Optimized for Free Plan)
+ * Aiden PRO Bot - Cloudflare Workers (ES Module Format)
  * Кэширование котировок для экономии лимитов
  */
 
 const BOT_TOKEN = "8341305314:AAGgyDgXQ8L3JKr7NqukTC4vSsNiJNIzYAc";
-const CACHE_TTL = 300; // 5 минут кэш
+const CACHE_TTL = 300;
 
-// Кэш в памяти (сбрасывается после каждого запроса)
-let cryptoCache = null;
-let moexCache = null;
-let cryptoTime = 0;
-let moexTime = 0;
+let cryptoCache = null, moexCache = null, cryptoTime = 0, moexTime = 0;
 
-// Получение криптовалют с кэшем
 async function getCryptoPrices(env) {
   const now = Date.now();
-  
-  // Проверка кэша
-  if (cryptoCache && (now - cryptoTime) < CACHE_TTL * 1000) {
-    return cryptoCache;
-  }
-  
-  // Проверка KV кэша
-  if (env.RAG_STORE) {
+  if (cryptoCache && (now - cryptoTime) < CACHE_TTL * 1000) return cryptoCache;
+  if (env?.RAG_STORE) {
     const cached = await env.RAG_STORE.get('crypto_prices');
-    if (cached) {
-      cryptoCache = JSON.parse(cached);
-      cryptoTime = now;
-      return cryptoCache;
-    }
+    if (cached) { cryptoCache = JSON.parse(cached); cryptoTime = now; return cryptoCache; }
   }
-  
-  // Запрос к API
   try {
     const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,cardano,ripple&vs_currencies=usd&include_24hr_change=true');
     const d = await r.json();
@@ -44,36 +27,18 @@ async function getCryptoPrices(env) {
       xrp: {p:d.ripple.usd,c:d.ripple.usd_24h_change?.toFixed(2)}
     };
     cryptoTime = now;
-    
-    // Сохранение в KV
-    if (env.RAG_STORE) {
-      await env.RAG_STORE.put('crypto_prices', JSON.stringify(cryptoCache), {expirationTtl: CACHE_TTL});
-    }
-    
+    if (env?.RAG_STORE) await env.RAG_STORE.put('crypto_prices', JSON.stringify(cryptoCache), {expirationTtl: CACHE_TTL});
     return cryptoCache;
-  } catch(e) { 
-    console.error("Crypto API error:", e);
-    return null; 
-  }
+  } catch(e) { return null; }
 }
 
-// Получение MOEX с кэшем
 async function getMoexPrices(env) {
   const now = Date.now();
-  
-  if (moexCache && (now - moexTime) < CACHE_TTL * 1000) {
-    return moexCache;
-  }
-  
-  if (env.RAG_STORE) {
+  if (moexCache && (now - moexTime) < CACHE_TTL * 1000) return moexCache;
+  if (env?.RAG_STORE) {
     const cached = await env.RAG_STORE.get('moex_prices');
-    if (cached) {
-      moexCache = JSON.parse(cached);
-      moexTime = now;
-      return moexCache;
-    }
+    if (cached) { moexCache = JSON.parse(cached); moexTime = now; return moexCache; }
   }
-  
   try {
     const r = await fetch('https://www.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json?s=sber,gazp,lkoh,tatn,polvb,yndxsban');
     const d = await r.json();
@@ -85,16 +50,9 @@ async function getMoexPrices(env) {
     }
     moexCache = s;
     moexTime = now;
-    
-    if (env.RAG_STORE) {
-      await env.RAG_STORE.put('moex_prices', JSON.stringify(moexCache), {expirationTtl: CACHE_TTL});
-    }
-    
+    if (env?.RAG_STORE) await env.RAG_STORE.put('moex_prices', JSON.stringify(moexCache), {expirationTtl: CACHE_TTL});
     return s;
-  } catch(e) { 
-    console.error("MOEX API error:", e);
-    return null; 
-  }
+  } catch(e) { return null; }
 }
 
 const MAIN_KB={inline_keyboard:[
@@ -125,9 +83,9 @@ async function handleCmd(m,env){
     return msg(id,"₿*Крипта*\n\nЗагрузка...");
   }
   if(t==="/invest"){
-    const m=await getMoexPrices(env);
-    if(m&&m.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;
-      return msg(id,`💰*АКЦИИ MOEX*\n\nСБЕР:${f(m.sber)}\nГАЗП:${f(m.gazp)}\nЛУКОЙ:${f(m.lkoh)}\n\n_Кэш: 5 мин_`,{inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]});}
+    const moex=await getMoexPrices(env);
+    if(moex&&moex.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;
+      return msg(id,`💰*АКЦИИ MOEX*\n\nСБЕР:${f(moex.sber)}\nГАЗП:${f(moex.gazp)}\nЛУКОЙ:${f(moex.lkoh)}\n\n_Кэш: 5 мин_`,{inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]});}
     return msg(id,"💰*Инвест*\n\nЗагрузка...");
   }
   return null;
@@ -138,8 +96,8 @@ async function handleCb(cb,env){
   await answerCb(cb.id);
   if(d==="back"||d==="categories"){r=d==="back"?"🔙*Меню*":"📚*Категории*";k=MAIN_KB;}
   else if(d==="invest_main"){r="💰*ИНВЕСТ*";k={inline_keyboard:[[{text:"📈Акции",callback_data:"invest_stocks"}],[{text:"🔙Назад",callback_data:"back"}]]};}
-  else if(d==="invest_stocks"){const m=await getMoexPrices(env);if(m&&m.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;r=`💰*АКЦИИ*\n\nСБЕР:${f(m.sber)}\nГАЗП:${f(m.gazp)}\nЛУКОЙ:${f(m.lkoh)}`;k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}else{r="Загрузка...";k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}}
-  else if(d==="moex_refresh"){await answerCb(cb.id,"Обновляю...");const m=await getMoexPrices(env);if(m&&m.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;r=`💰*MOEX*\n\nСБЕР:${f(m.sber)}\nГАЗП:${f(m.gazp)}\n\n_Обновлено:_${new Date().toLocaleTimeString('ru-RU')}`;k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}}
+  else if(d==="invest_stocks"){const moex=await getMoexPrices(env);if(moex&&moex.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;r=`💰*АКЦИИ*\n\nСБЕР:${f(moex.sber)}\nГАЗП:${f(moex.gazp)}\nЛУКОЙ:${f(moex.lkoh)}`;k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}else{r="Загрузка...";k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}}
+  else if(d==="moex_refresh"){await answerCb(cb.id,"Обновляю...");const moex=await getMoexPrices(env);if(moex&&moex.sber){const f=x=>`${x.p}₽(${x.cp>=0?'📈':'📉'}${x.cp}%)`;r=`💰*MOEX*\n\nСБЕР:${f(moex.sber)}\nГАЗП:${f(moex.gazp)}\n\n_Обновлено:_${new Date().toLocaleTimeString('ru-RU')}`;k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"moex_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}}
   else if(d==="crypto_main"){r="₿*КРИПТА*";k={inline_keyboard:[[{text:"BTC",callback_data:"crypto_btc"}],[{text:"🔙Назад",callback_data:"back"}]]};}
   else if(d==="crypto_refresh"){await answerCb(cb.id,"Обновляю...");const c=await getCryptoPrices(env);if(c){const f=x=>`$${x.p.toLocaleString()}(${x.c>=0?'📈':'📉'}${x.c}%)`;r=`₿*КРИПТА*\n\nBTC:${f(c.btc)}\nETH:${f(c.eth)}\n\n_Обновлено:_${new Date().toLocaleTimeString('ru-RU')}`;k={inline_keyboard:[[{text:"🔄Обновить",callback_data:"crypto_refresh"}],[{text:"🔙Назад",callback_data:"back"}]]};}}
   else if(d==="crypto_btc"){const c=await getCryptoPrices(env);if(c){r=`₿*BTC*\n\n$${c.btc.p.toLocaleString()}(${c.btc.c>=0?'📈':'📉'}${c.btc.c}%)`;k={inline_keyboard:[[{text:"🔙Назад",callback_data:"crypto_main"}]]};}}
@@ -159,28 +117,13 @@ async function handleCb(cb,env){
 export default {
   async fetch(request, env, ctx) {
     const u = new URL(request.url);
-    
     if(request.method==="GET"){
-      if(u.searchParams.get("test")==="send"){
-        const id=u.searchParams.get("chat")||"1271633868";
-        await msg(id,"✅OK");
-        return new Response("Sent to "+id);
-      }
-      // Статус с лимитами
-      return new Response(`🤖Aiden PRO\n✅ Webhook Active\n💰 Free Plan\n⏱️ CPU: 10ms\n📊 100k/day`);
+      if(u.searchParams.get("test")==="send"){const id=u.searchParams.get("chat")||"1271633868";await msg(id,"✅OK");return new Response("Sent to "+id);}
+      return new Response(`🤖Aiden PRO\n✅Webhook Active\n💰Free Plan\n⏱️CPU:10ms\n📊100k/day`);
     }
-    
     if(request.method==="POST"){
-      try{
-        const x=await request.json();
-        if(x.message)await handleCmd(x.message,env);
-        if(x.callback_query)await handleCb(x.callback_query,env);
-        return new Response("OK");
-      }catch(t){
-        return new Response("Err:"+t.message,{status:500});
-      }
+      try{const x=await request.json();if(x.message)await handleCmd(x.message,env);if(x.callback_query)await handleCb(x.callback_query,env);return new Response("OK");}catch(t){return new Response("Err:"+t.message,{status:500});}
     }
-    
     return new Response("No",{status:405});
   }
 };
