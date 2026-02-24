@@ -273,6 +273,7 @@ export default {
             if (refId !== uid) {
               await addRef(env, uid, refId);
               await activateTutor(env, uid, "trial", 7);
+            }
             await sendMsg(env.BOT_TOKEN, chatId, `✅ 7 дней бесплатно!\n\nТвоя ссылка:\nt.me/AidenHelpbot?start=ref_${uid}`);
             return new Response("OK");
           }
@@ -420,7 +421,7 @@ export default {
           await sendMsg(env.BOT_TOKEN, chatId, reply);
           return new Response("OK");
         }
-        
+
         // AI
         if (text.startsWith("/invest ")) reply = await ai(env, "Инвестиции: " + text.replace("/invest ", ""));
         else if (text.startsWith("/crypto ")) reply = await ai(env, "Крипта: " + text.replace("/crypto ", ""));
@@ -430,14 +431,16 @@ export default {
         else if (text.startsWith("/")) reply = "❓ /help";
         else if (text.includes("@AidenHelpbot")) reply = await ai(env, text.replace("@AidenHelpbot", ""));
         else return new Response("OK");
-        
+
         if (reply) await sendMsg(env.BOT_TOKEN, chatId, reply);
+      } catch (e) {
+        console.error("Error handling message:", e);
       }
-      
+
       return new Response("OK");
     }
-    
-    return new Response("No");
+
+    return new Response("OK");
   },
   
   // AUTO POSTING - SCHEDULER
