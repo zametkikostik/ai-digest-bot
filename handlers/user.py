@@ -72,7 +72,23 @@ async def cmd_help(message: types.Message):
     text += "• /ask [вопрос] — задать вопрос AI\n"
     text += "• /search [запрос] — поиск в БЗ\n"
     text += "• /faq — вопросы и ответы по категориям\n"
-    text += "• /rules — правила чата\n\n"
+    text += "• /rules — правила чата\n"
+    text += "• /categories — категории\n"
+    text += "• /weather [город] — погода\n"
+    text += "• /crypto — криптовалюты\n"
+    text += "• /stocks — акции MOEX\n"
+    text += "• /inflation — инфляция\n\n"
+
+    text += "**Premium команды**:\n"
+    text += "• /tutor — AI Репетитор (ОГЭ/ЕГЭ)\n"
+    text += "• /lawyer_ru — AI Юрист Россия\n"
+    text += "• /lawyer_bg — AI Юрист Болгария\n"
+    text += "• /lawyer_criminal — Уголовное право\n"
+    text += "• /language — AI Учитель языков\n"
+    text += "• /seo_audit — AI SEO Эксперт\n"
+    text += "• /journalist — AI Журналист\n"
+    text += "• /expert — AI Эксперт (каналы)\n"
+    text += "• /criminal_track — Отслеживание дел\n\n"
 
     text += "**Для администраторов**:\n"
     text += "• /generate [тема] — создать пост\n"
@@ -90,7 +106,12 @@ async def cmd_help(message: types.Message):
     text += "• /warn @user — предупреждение\n"
     text += "• /unban @user — разбанить\n"
 
-    await message.reply(text, parse_mode='Markdown')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📚 Категории", callback_data="faq_categories")],
+        [InlineKeyboardButton(text="💎 Premium", callback_data="premium_info")]
+    ])
+    
+    await message.reply(text, reply_markup=keyboard, parse_mode='Markdown')
 
 
 @router.message(Command("rules"))

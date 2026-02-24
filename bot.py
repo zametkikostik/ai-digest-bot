@@ -19,7 +19,7 @@ from core.self_learning import init_self_learner
 from core.yandex_alice import init_yandex_alice
 from core.real_data import RealTimeData
 from database import init_db, crud
-from handlers import admin_router, user_router, moderation_router, categories_router
+from handlers import admin_router, user_router, moderation_router, categories_router, premium_router
 from prompts import SYSTEM_PROMPT
 
 # Настройка логирования
@@ -91,6 +91,7 @@ async def main():
     dp.include_router(user_router)
     dp.include_router(moderation_router)
     dp.include_router(categories_router)
+    dp.include_router(premium_router)
     
     # Обработчик /start для регистрации пользователей
     @dp.message(CommandStart())
