@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: aiden-telegram-bot
+    env: docker
+    region: frankfurt
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_NAME
+        sync: false
+      - key: BOT_TOPIC
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
+      - key: INVEST_CHANNEL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: SYSTEM_PROMPT
+        sync: false
+      - key: YANDEX_API_KEY
+        sync: false
+      - key: YANDEX_FOLDER_ID
+        sync: false
+      - key: OPENWEATHER_API_KEY
+        sync: false
+      - key: CHROMA_DB_PATH
+        sync: false
+      - key: EMBEDDING_MODEL
+        sync: false
+      - key: RATE_LIMIT_PER_USER
+        sync: false
+      - key: AUTO_LEARN_ENABLED
+        sync: false
+      - key: AUTO_LEARN_THRESHOLD
+        sync: false
+      - key: LOG_LEVEL
+        sync: false

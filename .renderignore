@@ -1,0 +1,40 @@
+# Render configuration
+render.yaml
+
+# Environment files (use Render Dashboard instead)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Database files (use persistent disk in production)
+*.db
+*.sqlite
+chroma_db/
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed in container)
+*.md
+
+# Scripts
+*.sh
+
+# Tests
+test_*.py
+*_test.py

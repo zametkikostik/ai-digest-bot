@@ -15,6 +15,7 @@
 - [Установка](#-установка)
 - [Команды бота](#-команды-бота)
 - [Cloudflare Workers](#-cloudflare-workers)
+- [Render Deployment](#-render-deployment)
 - [База знаний (RAG)](#-база-знаний-rag)
 - [Безопасность](#-безопасность)
 - [Структура проекта](#-структура-проекта)
@@ -154,6 +155,26 @@ python3 set_webhook.py
 
 ---
 
+## ☁️ Render Deployment
+
+### Быстрый деплой на Render (Бесплатно)
+
+1. **Запушьте код в GitHub**
+2. **Подключите репозиторий** на [render.com](https://render.com)
+3. **Создайте Web Service** с настройками:
+   - **Runtime:** Docker
+   - **Plan:** Free
+   - **Region:** Frankfurt
+
+4. **Добавьте переменные окружения:**
+   - `BOT_TOKEN`, `ADMIN_IDS`, `OPENROUTER_API_KEY`, и другие
+
+📖 **Подробная инструкция:** [RENDER_DEPLOY.md](RENDER_DEPLOY.md)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/zametkikostik/ai-digest-bot)
+
+---
+
 ## 📱 Команды бота
 
 ### Базовые команды
@@ -229,6 +250,49 @@ crons = ["0 9 * * *", "0 14 * * *", "30 19 * * *"]
 - `ADMIN_IDS` — ID админов
 - `CHANNEL_ID` — канал для постов
 - `OPENROUTER_API_KEY` — AI ключ
+
+---
+
+## ☁️ Render Deployment
+
+**Render** — облачная платформа с бесплатным тарифом для Telegram ботов.
+
+### Архитектура
+```
+┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   Telegram  │────▶│  Render (Docker) │────▶│  ChromaDB + SQLite│
+│   Long Poll │     │  Aiden Bot       │     │  (RAG + Данные)  │
+└─────────────┘     └──────────────────┘     └──────────────────┘
+```
+
+### Преимущества Render
+- ✅ **750 часов/мес бесплатно** — достаточно для 24/7
+- ✅ **Docker** — работает полная версия бота
+- ✅ **RAG и ChromaDB** — полная поддержка
+- ✅ **Persistent Disk** — сохранение данных (1GB бесплатно)
+- ✅ **Auto-deploy** — обновление при git push
+
+### Недостатки
+- ⚠️ ~2-3 сек запуск при cold start (бесплатный тариф)
+- ⚠️ 512MB RAM ограничение
+
+### Сравнение платформ
+
+| Функция | Cloudflare Workers | Render |
+|---------|-------------------|--------|
+| Цена | Бесплатно | Бесплатно (750 ч/мес) |
+| Холодный старт | ~50ms | ~2-3 сек |
+| RAG/ChromaDB | ❌ Нет | ✅ Да |
+| Webhook | ✅ Нужен | ❌ Не нужен (Polling) |
+| Docker | ❌ Нет | ✅ Да |
+| Persistent Storage | ❌ KV (ограничено) | ✅ Disk (1GB) |
+| Лимиты | 100K запросов/день | 750 часов/мес |
+
+**Рекомендация:**
+- **Cloudflare** — для лёгких ботов без RAG
+- **Render** — для полной версии с RAG и базой знаний
+
+📖 **Полная инструкция:** [RENDER_DEPLOY.md](RENDER_DEPLOY.md)
 
 ---
 

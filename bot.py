@@ -18,6 +18,7 @@ from core.scheduler import PostScheduler
 from core.self_learning import init_self_learner
 from core.yandex_alice import init_yandex_alice
 from core.real_data import RealTimeData
+from core.health_server import HealthServer
 from database import init_db, crud
 from handlers import admin_router, user_router, moderation_router, categories_router, premium_router
 from prompts import SYSTEM_PROMPT
@@ -84,6 +85,11 @@ async def main():
     else:
         scheduler = None
         logger.warning("CHANNEL_ID не указан, планировщик отключён")
+
+    # Запуск health server для Render (только для cloud deployment)
+    health_server = HealthServer(port=8080)
+    await health_server.start()
+    logger.info("Health server запущен для Render")
     
     # Регистрация роутеров
     # Передаём зависимости через kwargs
@@ -148,6 +154,7 @@ async def main():
         # Очистка
         if scheduler:
             scheduler.stop()
+        await health_server.stop()
         await ai_client.close()
         await bot.session.close()
         logger.info("Бот остановлен")

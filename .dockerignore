@@ -1,0 +1,67 @@
+# Docker
+.git
+.gitignore
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# RAG DB (большая папка с векторами)
+chroma_db/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Render
+render.yaml
+
+# Documentation
+*.md
+!README.md
+
+# Scripts
+install_systemd.sh
+restart_bot.sh
+start_bot.sh
+stop_bot.sh
+bot_status.sh
+test_bot.sh
+
+# Cloudflare
+.wrangler/
+cloudflare/
+
+# GitHub Actions
+.github/
+
+# PID file
+bot.pid
+
+# Tests
+test_buttons.py
+fill_faq_data.py
+load_knowledge.py
+load_all_knowledge.py
