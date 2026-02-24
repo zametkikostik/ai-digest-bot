@@ -6,27 +6,36 @@ on:
       - main
     paths:
       - 'cloudflare/**'
+  workflow_dispatch:  # Ручной запуск
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: cloudflare
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: cloudflare/package-lock.json
 
       - name: Install dependencies
         working-directory: ./cloudflare
-        run: npm install
+        run: npm ci --prefer-offline
 
       - name: Install Wrangler
-        run: npm install -g wrangler
+        run: npm install -g wrangler@latest
+
+      - name: Verify Wrangler
+        run: wrangler --version
 
       - name: Deploy to Cloudflare Workers
         working-directory: ./cloudflare
@@ -34,5 +43,31 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          echo "Deploying to Cloudflare..."
-          wrangler deploy
+          echo "🚀 Deploying to Cloudflare Workers..."
+          echo "📁 Working directory: $(pwd)"
+          echo "📦 Wrangler version: $(wrangler --version)"
+          
+          # Проверяем наличие необходимых файлов
+          if [ ! -f "wrangler.toml" ]; then
+            echo "❌ wrangler.toml not found!"
+            exit 1
+          fi
+          
+          if [ ! -f "src/worker.js" ]; then
+            echo "❌ src/worker.js not found!"
+            exit 1
+          fi
+          
+          echo "✅ All files present, starting deployment..."
+          wrangler deploy --var COMMIT_SHA:${{ github.sha }}
+          
+          echo "✅ Deployment completed successfully!"
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
