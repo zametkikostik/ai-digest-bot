@@ -139,22 +139,18 @@ def main():
             logger.info(f"   Чанков: {len(chunks)}")
 
             # Добавление в RAG с метаданными
-            for i, chunk in enumerate(chunks):
-                metadata = {
-                    "source": filename,
-                    "category": category,
-                    "chunk_index": i,
-                    "total_chunks": len(chunks),
-                    "loaded_at": datetime.now().isoformat()
-                }
-
-                try:
-                    rag.add_texts([chunk], [metadata])
-                    total_chunks += 1
-                except Exception as e:
-                    logger.error(f"   ❌ Ошибка добавления чанка {i}: {e}")
-
-            logger.info(f"   ✅ Загружено чанков: {len(chunks)}")
+            full_metadata = {
+                "source": filename,
+                "category": category,
+                "loaded_at": datetime.now().isoformat()
+            }
+            
+            try:
+                rag.add_document(text, source=filename, metadata=full_metadata)
+                total_chunks += 1
+                logger.info(f"   ✅ Документ загружен")
+            except Exception as e:
+                logger.error(f"   ❌ Ошибка добавления документа: {e}")
 
         except Exception as e:
             logger.error(f"   ❌ Ошибка обработки файла: {e}")
