@@ -1,5 +1,5 @@
 name = "ai-digest-bot"
-main = "src/worker.js"
+main = "src/worker-sw.js"
 compatibility_date = "2024-01-01"
 workers_dev = true
 
