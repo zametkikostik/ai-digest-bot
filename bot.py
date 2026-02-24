@@ -1,5 +1,6 @@
 """
-Telegram Universal Bot
+Telegram Universal Bot - Aiden
+Универсальный AI-ассистент с энциклопедическими знаниями
 Точка входа
 """
 import asyncio
@@ -14,8 +15,11 @@ from config import config
 from core.ai_client import OpenRouterClient
 from core.rag import RAGRetriever
 from core.scheduler import PostScheduler
+from core.self_learning import init_self_learner
+from core.yandex_alice import init_yandex_alice
+from core.real_data import RealTimeData
 from database import init_db, crud
-from handlers import admin_router, user_router, moderation_router
+from handlers import admin_router, user_router, moderation_router, categories_router
 from prompts import SYSTEM_PROMPT
 
 # Настройка логирования
@@ -49,12 +53,24 @@ async def main():
     # Инициализация базы данных
     init_db()
     logger.info("База данных инициализирована")
-    
+
     # Инициализация компонентов
     ai_client = OpenRouterClient(config.OPENROUTER_API_KEY)
     rag = RAGRetriever(config.CHROMA_DB_PATH)
-    
+    real_time_data = RealTimeData(config.OPENWEATHER_API_KEY)
+
     logger.info("AI клиент и RAG система инициализированы")
+
+    # Инициализация самообучения
+    self_learner = init_self_learner(ai_client, rag)
+    logger.info("Система самообучения инициализирована")
+
+    # Инициализация Яндекс.Алисы (если указаны ключи)
+    if config.YANDEX_API_KEY and config.YANDEX_FOLDER_ID:
+        init_yandex_alice(config.YANDEX_API_KEY, config.YANDEX_FOLDER_ID)
+        logger.info("Яндекс.Алиса инициализирована")
+    else:
+        logger.warning("YANDEX_API_KEY или YANDEX_FOLDER_ID не указаны, Алиса отключена")
     
     # Создание бота и диспетчера
     bot = Bot(
@@ -77,6 +93,7 @@ async def main():
     dp.include_router(admin_router)
     dp.include_router(user_router)
     dp.include_router(moderation_router)
+    dp.include_router(categories_router)
     
     # Обработчик /start для регистрации пользователей
     @dp.message(CommandStart())

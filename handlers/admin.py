@@ -293,11 +293,357 @@ async def cmd_setmoderator(message: types.Message):
     if not message.reply_to_message:
         await message.reply("Ответьте на сообщение пользователя")
         return
-    
+
     target_id = message.reply_to_message.from_user.id
-    
+
     db = crud.get_session()
     crud.set_moderator(db, target_id, True)
     db.close()
-    
+
     await message.reply(f"✅ Пользователь назначен модератором")
+
+
+# ==================== УПРАВЛЕНИЕ КАТЕГОРИЯМИ И FAQ ====================
+
+@router.message(Command("addcategory"), lambda message: is_admin(message.from_user.id))
+async def cmd_addcategory(message: types.Message):
+    """
+    Добавить категорию
+    Использование: /addcategory Название|Описание|Emoji
+    """
+    args = message.text.replace("/addcategory", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/addcategory Название|Описание|Emoji`\n\n"
+            "Пример: `/addcategory AI Новости|Всё об искусственном интеллекте|🤖`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    parts = args.split("|")
+    name = parts[0].strip()
+    description = parts[1].strip() if len(parts) > 1 else None
+    emoji = parts[2].strip() if len(parts) > 2 else "📁"
+    
+    db = crud.get_session()
+    
+    # Проверка на дубликат
+    existing = crud.get_category_by_name(db, name)
+    if existing:
+        await message.reply(f"⚠️ Категория \"{name}\" уже существует")
+        db.close()
+        return
+    
+    category = crud.create_category(
+        db,
+        name=name,
+        description=description,
+        emoji=emoji
+    )
+    
+    await message.reply(
+        f"✅ Категория создана!\n\n"
+        f"📁 Название: `{category.name}`\n"
+        f"📝 Описание: `{category.description or 'Нет'}`\n"
+        f"Emoji: `{category.emoji}`"
+    )
+    db.close()
+
+
+@router.message(Command("editcategory"), lambda message: is_admin(message.from_user.id))
+async def cmd_editcategory(message: types.Message):
+    """
+    Редактировать категорию
+    Использование: /editcategory ID|Название|Описание|Emoji
+    """
+    args = message.text.replace("/editcategory", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/editcategory ID|Название|Описание|Emoji`\n\n"
+            "Пример: `/editcategory 1|AI Новости|Обновлённое описание|🤖`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    parts = args.split("|")
+    try:
+        category_id = int(parts[0].strip())
+    except ValueError:
+        await message.reply("⚠️ ID должен быть числом")
+        return
+    
+    name = parts[1].strip() if len(parts) > 1 else None
+    description = parts[2].strip() if len(parts) > 2 else None
+    emoji = parts[3].strip() if len(parts) > 3 else None
+    
+    db = crud.get_session()
+    category = crud.update_category(
+        db,
+        category_id=category_id,
+        name=name,
+        description=description,
+        emoji=emoji
+    )
+    
+    if not category:
+        await message.reply(f"⚠️ Категория с ID {category_id} не найдена")
+        db.close()
+        return
+    
+    await message.reply(
+        f"✅ Категория обновлена!\n\n"
+        f"📁 Название: `{category.name}`\n"
+        f"📝 Описание: `{category.description or 'Нет'}`\n"
+        f"Emoji: `{category.emoji}`"
+    )
+    db.close()
+
+
+@router.message(Command("deletecategory"), lambda message: is_admin(message.from_user.id))
+async def cmd_deletecategory(message: types.Message):
+    """
+    Удалить категорию
+    Использование: /deletecategory ID
+    """
+    args = message.text.replace("/deletecategory", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/deletecategory ID`\n\n"
+            "Пример: `/deletecategory 1`"
+        )
+        return
+    
+    try:
+        category_id = int(args)
+    except ValueError:
+        await message.reply("⚠️ ID должен быть числом")
+        return
+    
+    db = crud.get_session()
+    
+    if crud.delete_category(db, category_id):
+        await message.reply(f"✅ Категория с ID {category_id} удалена")
+    else:
+        await message.reply(f"⚠️ Категория с ID {category_id} не найдена")
+    
+    db.close()
+
+
+@router.message(Command("addquestion"), lambda message: is_admin(message.from_user.id))
+async def cmd_addquestion(message: types.Message):
+    """
+    Добавить вопрос-ответ
+    Использование: /addquestion CategoryID|Вопрос|Ответ|Ключевые слова
+    """
+    args = message.text.replace("/addquestion", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/addquestion CategoryID|Вопрос|Ответ|Ключевые слова`\n\n"
+            "Пример: `/addquestion 1|Что такое AI?|AI это искусственный интеллект|ai, искусственный интеллект`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    parts = args.split("|")
+    if len(parts) < 3:
+        await message.reply(
+            "⚠️ Минимум 3 параметра: CategoryID|Вопрос|Ответ\n\n"
+            "Пример: `/addquestion 1|Что такое AI?|AI это искусственный интеллект`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    try:
+        category_id = int(parts[0].strip())
+    except ValueError:
+        await message.reply("⚠️ ID категории должен быть числом")
+        return
+    
+    question = parts[1].strip()
+    answer = parts[2].strip()
+    keywords = parts[3].strip() if len(parts) > 3 else None
+    
+    db = crud.get_session()
+    
+    # Проверка существования категории
+    category = crud.get_category(db, category_id)
+    if not category:
+        await message.reply(f"⚠️ Категория с ID {category_id} не найдена")
+        db.close()
+        return
+    
+    faq = crud.create_faq_question(
+        db,
+        category_id=category_id,
+        question=question,
+        answer=answer,
+        keywords=keywords
+    )
+    
+    await message.reply(
+        f"✅ Вопрос добавлен!\n\n"
+        f"❓ Вопрос: `{faq.question}`\n"
+        f"💡 Ответ: `{faq.answer[:50]}...`\n"
+        f"🏷️ Ключевые слова: `{faq.keywords or 'Нет'}`"
+    )
+    db.close()
+
+
+@router.message(Command("editquestion"), lambda message: is_admin(message.from_user.id))
+async def cmd_editquestion(message: types.Message):
+    """
+    Редактировать вопрос-ответ
+    Использование: /editquestion ID|Вопрос|Ответ|Ключевые слова
+    """
+    args = message.text.replace("/editquestion", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/editquestion ID|Вопрос|Ответ|Ключевые слова`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    parts = args.split("|")
+    try:
+        question_id = int(parts[0].strip())
+    except ValueError:
+        await message.reply("⚠️ ID должен быть числом")
+        return
+    
+    question = parts[1].strip() if len(parts) > 1 else None
+    answer = parts[2].strip() if len(parts) > 2 else None
+    keywords = parts[3].strip() if len(parts) > 3 else None
+    
+    db = crud.get_session()
+    faq = crud.update_faq_question(
+        db,
+        question_id=question_id,
+        question=question,
+        answer=answer,
+        keywords=keywords
+    )
+    
+    if not faq:
+        await message.reply(f"⚠️ Вопрос с ID {question_id} не найден")
+        db.close()
+        return
+    
+    await message.reply(
+        f"✅ Вопрос обновлён!\n\n"
+        f"❓ Вопрос: `{faq.question}`\n"
+        f"💡 Ответ: `{faq.answer[:50]}...`"
+    )
+    db.close()
+
+
+@router.message(Command("deletequestion"), lambda message: is_admin(message.from_user.id))
+async def cmd_deletequestion(message: types.Message):
+    """
+    Удалить вопрос-ответ
+    Использование: /deletequestion ID
+    """
+    args = message.text.replace("/deletequestion", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/deletequestion ID`\n\n"
+            "Пример: `/deletequestion 1`"
+        )
+        return
+    
+    try:
+        question_id = int(args)
+    except ValueError:
+        await message.reply("⚠️ ID должен быть числом")
+        return
+    
+    db = crud.get_session()
+    
+    if crud.delete_faq_question(db, question_id):
+        await message.reply(f"✅ Вопрос с ID {question_id} удалён")
+    else:
+        await message.reply(f"⚠️ Вопрос с ID {question_id} не найден")
+    
+    db.close()
+
+
+@router.message(Command("listcategories"), lambda message: is_admin(message.from_user.id))
+async def cmd_listcategories(message: types.Message):
+    """Показать все категории"""
+    db = crud.get_session()
+    categories = crud.get_all_categories(db, active_only=False)
+    db.close()
+    
+    if not categories:
+        await message.reply("📭 Категории пока не созданы")
+        return
+    
+    text = "📚 **Все категории**:\n\n"
+    for cat in categories:
+        questions_count = cat.questions.count() if hasattr(cat.questions, 'count') else 0
+        status = "✅" if cat.is_active else "❌"
+        text += f"{status} **ID {cat.id}**: {cat.emoji} {cat.name} ({questions_count} вопросов)\n"
+    
+    await message.reply(text, parse_mode='Markdown')
+
+
+@router.message(Command("listquestions"), lambda message: is_admin(message.from_user.id))
+async def cmd_listquestions(message: types.Message):
+    """Показать вопросы категории"""
+    args = message.text.replace("/listquestions", "").strip()
+    
+    if not args:
+        await message.reply(
+            "⚠️ Использование: `/listquestions CategoryID`\n\n"
+            "Пример: `/listquestions 1`",
+            parse_mode='Markdown'
+        )
+        return
+    
+    try:
+        category_id = int(args)
+    except ValueError:
+        await message.reply("⚠️ ID категории должен быть числом")
+        return
+    
+    db = crud.get_session()
+    category = crud.get_category(db, category_id)
+    if not category:
+        await message.reply(f"⚠️ Категория с ID {category_id} не найдена")
+        db.close()
+        return
+    
+    questions = crud.get_questions_by_category(db, category_id, active_only=False)
+    db.close()
+    
+    if not questions:
+        await message.reply(f"📭 В категории \"{category.name}\" нет вопросов")
+        return
+    
+    text = f"📚 **Вопросы категории \"{category.name}\"**:\n\n"
+    for faq in questions:
+        status = "✅" if faq.is_active else "❌"
+        text += f"{status} **ID {faq.id}**: {faq.question[:50]}{'...' if len(faq.question) > 50 else ''}\n"
+        text += f"   👁️ Просмотров: {faq.views_count}\n\n"
+    
+    await message.reply(text, parse_mode='Markdown')
+
+
+@router.message(Command("faqs"), lambda message: is_admin(message.from_user.id))
+async def cmd_faqs(message: types.Message):
+    """Статистика FAQ"""
+    db = crud.get_session()
+    stats = crud.get_faq_stats(db)
+    db.close()
+    
+    text = "📚 **Статистика FAQ**:\n\n"
+    text += f"📁 Категорий (всего/активных): `{stats['total_categories']}/{stats['active_categories']}`\n"
+    text += f"❓ Вопросов (всего/активных): `{stats['total_questions']}/{stats['active_questions']}`\n"
+    text += f"👁️ Всего просмотров: `{stats['total_views']}`\n"
+    
+    await message.reply(text, parse_mode='Markdown')

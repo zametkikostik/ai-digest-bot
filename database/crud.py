@@ -9,7 +9,8 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from database.models import (
     User, Violation, Post, KnowledgeDocument,
-    ConversationContext, RateLimit, BotLog, get_session
+    ConversationContext, RateLimit, BotLog,
+    Category, FAQQuestion, get_session
 )
 
 logger = logging.getLogger(__name__)
@@ -404,4 +405,201 @@ def get_stats(db: Session) -> dict:
         "total_violations": db.query(func.count(Violation.id)).scalar(),
         "pending_posts": db.query(func.count(Post.id)).filter(Post.status == "pending").scalar(),
         "knowledge_documents": db.query(func.count(KnowledgeDocument.id)).scalar()
+    }
+
+
+# ==================== CATEGORY ====================
+
+def create_category(
+    db: Session,
+    name: str,
+    description: Optional[str] = None,
+    emoji: str = "📁",
+    sort_order: int = 0
+) -> Category:
+    """Создать категорию"""
+    category = Category(
+        name=name,
+        description=description,
+        emoji=emoji,
+        sort_order=sort_order
+    )
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    logger.info(f"Создана категория: {name}")
+    return category
+
+
+def get_category(db: Session, category_id: int) -> Optional[Category]:
+    """Получить категорию по ID"""
+    return db.query(Category).filter(Category.id == category_id).first()
+
+
+def get_category_by_name(db: Session, name: str) -> Optional[Category]:
+    """Получить категорию по имени"""
+    return db.query(Category).filter(Category.name == name).first()
+
+
+def get_all_categories(db: Session, active_only: bool = True) -> list:
+    """Получить все категории"""
+    query = db.query(Category)
+    if active_only:
+        query = query.filter(Category.is_active == True)
+    return query.order_by(Category.sort_order, Category.name).all()
+
+
+def update_category(
+    db: Session,
+    category_id: int,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    emoji: Optional[str] = None,
+    sort_order: Optional[int] = None,
+    is_active: Optional[bool] = None
+) -> Optional[Category]:
+    """Обновить категорию"""
+    category = get_category(db, category_id)
+    if not category:
+        return None
+    
+    if name is not None:
+        category.name = name
+    if description is not None:
+        category.description = description
+    if emoji is not None:
+        category.emoji = emoji
+    if sort_order is not None:
+        category.sort_order = sort_order
+    if is_active is not None:
+        category.is_active = is_active
+    
+    db.commit()
+    db.refresh(category)
+    return category
+
+
+def delete_category(db: Session, category_id: int) -> bool:
+    """Удалить категорию"""
+    category = get_category(db, category_id)
+    if not category:
+        return False
+    db.delete(category)
+    db.commit()
+    logger.info(f"Удалена категория: {category.name}")
+    return True
+
+
+# ==================== FAQ QUESTION ====================
+
+def create_faq_question(
+    db: Session,
+    category_id: int,
+    question: str,
+    answer: str,
+    keywords: Optional[str] = None,
+    sort_order: int = 0
+) -> FAQQuestion:
+    """Создать вопрос-ответ"""
+    faq = FAQQuestion(
+        category_id=category_id,
+        question=question,
+        answer=answer,
+        keywords=keywords,
+        sort_order=sort_order
+    )
+    db.add(faq)
+    db.commit()
+    db.refresh(faq)
+    logger.info(f"Создан вопрос FAQ: {question[:50]}")
+    return faq
+
+
+def get_faq_question(db: Session, question_id: int) -> Optional[FAQQuestion]:
+    """Получить вопрос по ID"""
+    return db.query(FAQQuestion).filter(FAQQuestion.id == question_id).first()
+
+
+def get_questions_by_category(
+    db: Session,
+    category_id: int,
+    active_only: bool = True
+) -> list:
+    """Получить все вопросы категории"""
+    query = db.query(FAQQuestion).filter(FAQQuestion.category_id == category_id)
+    if active_only:
+        query = query.filter(FAQQuestion.is_active == True)
+    return query.order_by(FAQQuestion.sort_order, FAQQuestion.question).all()
+
+
+def update_faq_question(
+    db: Session,
+    question_id: int,
+    question: Optional[str] = None,
+    answer: Optional[str] = None,
+    keywords: Optional[str] = None,
+    sort_order: Optional[int] = None,
+    is_active: Optional[bool] = None
+) -> Optional[FAQQuestion]:
+    """Обновить вопрос-ответ"""
+    faq = get_faq_question(db, question_id)
+    if not faq:
+        return None
+    
+    if question is not None:
+        faq.question = question
+    if answer is not None:
+        faq.answer = answer
+    if keywords is not None:
+        faq.keywords = keywords
+    if sort_order is not None:
+        faq.sort_order = sort_order
+    if is_active is not None:
+        faq.is_active = is_active
+    
+    db.commit()
+    db.refresh(faq)
+    return faq
+
+
+def delete_faq_question(db: Session, question_id: int) -> bool:
+    """Удалить вопрос-ответ"""
+    faq = get_faq_question(db, question_id)
+    if not faq:
+        return False
+    db.delete(faq)
+    db.commit()
+    logger.info(f"Удален вопрос FAQ: {faq.question[:50]}")
+    return True
+
+
+def increment_question_views(db: Session, question_id: int) -> bool:
+    """Увеличить счетчик просмотров вопроса"""
+    faq = get_faq_question(db, question_id)
+    if not faq:
+        return False
+    faq.views_count += 1
+    db.commit()
+    return True
+
+
+def search_faq_questions(db: Session, query: str, limit: int = 10) -> list:
+    """Поиск вопросов по ключевым словам"""
+    query_lower = f"%{query.lower()}%"
+    return db.query(FAQQuestion).filter(
+        FAQQuestion.is_active == True,
+        (FAQQuestion.question.ilike(query_lower)) |
+        (FAQQuestion.keywords.ilike(query_lower)) |
+        (FAQQuestion.answer.ilike(query_lower))
+    ).limit(limit).all()
+
+
+def get_faq_stats(db: Session) -> dict:
+    """Получить статистику FAQ"""
+    return {
+        "total_categories": db.query(func.count(Category.id)).scalar(),
+        "active_categories": db.query(func.count(Category.id)).filter(Category.is_active == True).scalar(),
+        "total_questions": db.query(func.count(FAQQuestion.id)).scalar(),
+        "active_questions": db.query(func.count(FAQQuestion.id)).filter(FAQQuestion.is_active == True).scalar(),
+        "total_views": db.query(func.sum(FAQQuestion.views_count)).scalar() or 0
     }

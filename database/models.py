@@ -122,15 +122,57 @@ class RateLimit(Base):
 class BotLog(Base):
     """Логи бота"""
     __tablename__ = "bot_logs"
-    
+
     id = Column(Integer, primary_key=True)
     level = Column(String(50), default="INFO")  # INFO, WARNING, ERROR
     message = Column(Text, nullable=False)
     source = Column(String(100))  # модуль-источник
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    
+
     def __repr__(self):
         return f"<BotLog {self.level}: {self.message[:50]}>"
+
+
+class Category(Base):
+    """Категории для FAQ"""
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    emoji = Column(String(10), default="📁")
+    sort_order = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Связи
+    questions = relationship("FAQQuestion", back_populates="category", lazy="dynamic", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Category {self.name}>"
+
+
+class FAQQuestion(Base):
+    """Вопросы и ответы в категориях"""
+    __tablename__ = "faq_questions"
+
+    id = Column(Integer, primary_key=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, index=True)
+    question = Column(Text, nullable=False)
+    answer = Column(Text, nullable=False)
+    keywords = Column(String(500), nullable=True)  # Ключевые слова для поиска, через запятую
+    sort_order = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    views_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Связи
+    category = relationship("Category", back_populates="questions")
+
+    def __repr__(self):
+        return f"<FAQQuestion {self.question[:50]}>"
 
 
 # Инициализация базы данных

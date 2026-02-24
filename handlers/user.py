@@ -6,6 +6,7 @@ from aiogram import Router, F, types
 from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy.orm import Session
 from core.ai_client import OpenRouterClient
 from core.rag import RAGRetriever
@@ -29,7 +30,7 @@ class AskState(StatesGroup):
 async def cmd_start(message: types.Message):
     """Команда /start"""
     db = crud.get_session()
-    
+
     # Регистрация пользователя
     crud.get_or_create_user(
         db,
@@ -39,7 +40,7 @@ async def cmd_start(message: types.Message):
         last_name=message.from_user.last_name
     )
     db.close()
-    
+
     text = (
         f"👋 Привет, **{message.from_user.first_name}**!\n\n"
         f"Я — **{config.BOT_NAME}**, ваш AI-ассистент.\n"
@@ -48,36 +49,47 @@ async def cmd_start(message: types.Message):
         "• /help — список всех команд\n"
         "• /ask [вопрос] — задать вопрос AI\n"
         "• /search [запрос] — поиск в базе знаний\n"
+        "• /faq — вопросы и ответы по категориям\n"
         "• /rules — правила чата\n\n"
         "Просто напишите мне, и я отвечу!"
     )
     
-    await message.reply(text, parse_mode='Markdown')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📚 Категории вопросов", callback_data="faq_categories")],
+        [InlineKeyboardButton(text="❓ Помощь", callback_data="help")]
+    ])
+
+    await message.reply(text, reply_markup=keyboard, parse_mode='Markdown')
 
 
 @router.message(Command("help"))
 async def cmd_help(message: types.Message):
     """Команда /help"""
     text = "📖 **Справка**:\n\n"
-    
+
     text += "**Для всех**:\n"
     text += "• /start — приветствие\n"
     text += "• /ask [вопрос] — задать вопрос AI\n"
     text += "• /search [запрос] — поиск в БЗ\n"
+    text += "• /faq — вопросы и ответы по категориям\n"
     text += "• /rules — правила чата\n\n"
-    
+
     text += "**Для администраторов**:\n"
     text += "• /generate [тема] — создать пост\n"
     text += "• /schedule — расписание\n"
     text += "• /contentplan — контент-план\n"
     text += "• /addknowledge — добавить в БЗ\n"
-    text += "• /stats — статистика\n\n"
-    
+    text += "• /stats — статистика\n"
+    text += "• /addcategory — добавить категорию\n"
+    text += "• /addquestion — добавить вопрос\n"
+    text += "• /listcategories — список категорий\n"
+    text += "• /faqs — статистика FAQ\n\n"
+
     text += "**Для модераторов**:\n"
     text += "• /ban @user — забанить\n"
     text += "• /warn @user — предупреждение\n"
     text += "• /unban @user — разбанить\n"
-    
+
     await message.reply(text, parse_mode='Markdown')
 
 
